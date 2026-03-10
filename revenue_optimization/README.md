@@ -1,6 +1,6 @@
 # Bar Screen Ad Scheduling
 
-A simulated ad scheduling system for a bar with multiple digital screen areas. Your team is implementing test driven development and as such they have written tests to outline all of the required functionality. Your task is to implement the core classes and functions that validate ad placements, calculate revenue, compare schedules, and build an optimized ad schedule.
+A simulated ad scheduling system for screens across multiple areas in a venue, such as the main hall, bar, and patio. Your team is implementing test driven development and as such they have written tests to outline all of the required functionality. Your task is to implement the core classes and functions that validate ad placements, calculate revenue, compare schedules, and build an optimized ad schedule.
 
 **DO NOT modify any of the test files or any of the function signatures.** When evaluating we will be running tests to check for valid implementations, and your score on this section will be proportional to the amount of tests that pass relative to other teams.
 
@@ -39,17 +39,20 @@ Handles core ad placement validation and basic revenue calculations.
 **Data Model:**
 ```typescript
 interface Ad {
-    id: string;
-    duration: number;
-    baseValue: number;
+    adId: string;
     advertiserId: string;
-    allowedLocations: string[];
+    timeReceived: int;
+    timeout: int;
+    duration: number;
+    baseRevenue: number;
+    bannedLocations: string[];
 }
 
 interface Area {
-    id: string;
+    areaId: string;
     location: string;
     multiplier: number;
+    totalScreens: number;
     timeWindow: number;
 }
 
@@ -84,17 +87,20 @@ Handles advertiser-based scoring rules, diminishing returns, and schedule compar
 **Data Model:**
 ```typescript
 interface Ad {
-    id: string;
-    duration: number;
-    baseValue: number;
+    adId: string;
     advertiserId: string;
-    allowedLocations: string[];
+    timeReceived: int;
+    timeout: int;
+    duration: number;
+    baseRevenue: number;
+    bannedLocations: string[];
 }
 
 interface Area {
-    id: string;
+    areaId: string;
     location: string;
     multiplier: number;
+    totalScreens: number;
     timeWindow: number;
 }
 
@@ -127,17 +133,20 @@ Builds candidate placements and generates an optimized schedule.
 **Data Model:**
 ```typescript
 interface Ad {
-    id: string;
-    duration: number;
-    baseValue: number;
+    adId: string;
     advertiserId: string;
-    allowedLocations: string[];
+    timeReceived: int;
+    timeout: int;
+    duration: number;
+    baseRevenue: number;
+    bannedLocations: string[];
 }
 
 interface Area {
-    id: string;
+    areaId: string;
     location: string;
     multiplier: number;
+    totalScreens: number;
     timeWindow: number;
 }
 
@@ -166,10 +175,14 @@ type Schedule = Record<string, ScheduledAd[]>;
 
 Your implementation must respect the following rules:
 
-- Each ad can be scheduled at most once across all areas.
+- Each ad may only appear once in your schedule, and you are not required to schedule every ad.
+- An ad can only start between timeReceived and timeReceived + timeout.
+- Each ad runs for duration time units once scheduled.
+- Only one ad may run in a location at any given time, but ads may run simultaneously in different locations.
+- Ads cannot be placed in locations listed in their bannedLocations field.
 - Each area has its own fixed scheduling time window.
-- The same ad may earn different revenue in different areas.
-- Some ads may only be played in specific areas.
+
+- The goal is to maximize total profit, calculated as profit × locationMultiplier for the location where the ad runs.
 - If multiple ads from the same advertiser are scheduled, later ads from that advertiser earn reduced revenue.
 - If two schedules have the same total revenue, the better one is the one with less unused time across all areas.
 - If revenue and unused time are tied, the better schedule is the one with greater advertiser diversity.
