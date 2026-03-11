@@ -38,8 +38,11 @@ describe('RevenueEngine', () => {
         revenueEngine = new RevenueEngine(placementEngine);
     });
 
-    // Helper function to create test ads
-    const createTestAd = (adId: string, advertiserId: string, overrides: Partial<Ad> = {}): Ad => ({
+    const createTestAd = (
+        adId: string,
+        advertiserId: string,
+        overrides: Partial<Ad> = {}
+    ): Ad => ({
         adId,
         advertiserId,
         timeReceived: 0,
@@ -50,8 +53,11 @@ describe('RevenueEngine', () => {
         ...overrides,
     });
 
-    // Helper function to create test areas
-    const createTestArea = (areaId: string, location: string, overrides: Partial<Area> = {}): Area => ({
+    const createTestArea = (
+        areaId: string,
+        location: string,
+        overrides: Partial<Area> = {}
+    ): Area => ({
         areaId,
         location,
         multiplier: 1.0,
@@ -60,8 +66,12 @@ describe('RevenueEngine', () => {
         ...overrides,
     });
 
-    // Helper function to create test scheduled ads
-    const createTestScheduledAd = (adId: string, areaId: string, startTime: number, endTime: number): ScheduledAd => ({
+    const createTestScheduledAd = (
+        adId: string,
+        areaId: string,
+        startTime: number,
+        endTime: number
+    ): ScheduledAd => ({
         adId,
         areaId,
         startTime,
@@ -77,6 +87,7 @@ describe('RevenueEngine', () => {
             const schedule: Schedule = {
                 area1: [createTestScheduledAd('ad2', 'area1', 0, 5)],
             };
+
             expect(revenueEngine.getAdvertiserScheduleCount('adv1', ads, schedule)).toBe(0);
         });
 
@@ -88,6 +99,7 @@ describe('RevenueEngine', () => {
             const schedule: Schedule = {
                 area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
             };
+
             expect(revenueEngine.getAdvertiserScheduleCount('adv1', ads, schedule)).toBe(1);
         });
 
@@ -101,12 +113,14 @@ describe('RevenueEngine', () => {
                 area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
                 area2: [createTestScheduledAd('ad2', 'area2', 0, 5)],
             };
+
             expect(revenueEngine.getAdvertiserScheduleCount('adv1', ads, schedule)).toBe(2);
         });
 
         it('should return 0 for empty schedule', () => {
             const ads: Ad[] = [createTestAd('ad1', 'adv1')];
             const schedule: Schedule = {};
+
             expect(revenueEngine.getAdvertiserScheduleCount('adv1', ads, schedule)).toBe(0);
         });
 
@@ -115,6 +129,7 @@ describe('RevenueEngine', () => {
             const schedule: Schedule = {
                 area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
             };
+
             expect(revenueEngine.getAdvertiserScheduleCount('nonexistent', ads, schedule)).toBe(0);
         });
 
@@ -129,6 +144,7 @@ describe('RevenueEngine', () => {
                     createTestScheduledAd('ad2', 'area1', 10, 15),
                 ],
             };
+
             expect(revenueEngine.getAdvertiserScheduleCount('adv1', ads, schedule)).toBe(2);
         });
     });
@@ -152,7 +168,7 @@ describe('RevenueEngine', () => {
 
             expect(first).toBeCloseTo(100);
             expect(second).toBeCloseTo(100 * 0.5);
-            expect(third).toBeCloseTo(100 * 0.5 * 0.5);  
+            expect(third).toBeCloseTo(100 * 0.5 * 0.5);
         });
 
         it('should handle decayRate of 0 (no decay)', () => {
@@ -176,29 +192,28 @@ describe('RevenueEngine', () => {
             const ad = createTestAd('ad1', 'adv1', { baseRevenue: 100 });
             const area = createTestArea('area1', 'main', { multiplier: 1.5 });
             const ads: Ad[] = [ad];
-            const schedule: Schedule = {area1: [createTestScheduledAd('ad1', 'area1', 0, 5)]};
+            const schedule: Schedule = {
+                area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
+            };
 
             const revenue = revenueEngine.calculatePlacementRevenue(ad, area, ads, schedule, 0.5);
-            expect(revenue).toBeCloseTo(150 * 1.5);
+            expect(revenue).toBeCloseTo(100 * 1.5);
         });
 
         it('should apply diminishing returns when advertiser has existing scheduled ads', () => {
             const ad1 = createTestAd('ad1', 'adv1', { baseRevenue: 100 });
             const ad2 = createTestAd('ad2', 'adv1', { baseRevenue: 200 });
             const area1 = createTestArea('area1', 'main', { multiplier: 1.5 });
-            const ads: Ad[] = [
-                ad1,
-                ad2,
-            ];
+            const ads: Ad[] = [ad1, ad2];
             const schedule: Schedule = {
                 area1: [
-                    createTestScheduledAd('ad1', 'area1', 0, 5), 
-                    createTestScheduledAd('ad2', 'area1', 5, 10)
+                    createTestScheduledAd('ad1', 'area1', 0, 5),
+                    createTestScheduledAd('ad2', 'area1', 5, 10),
                 ],
             };
 
             const revenue = revenueEngine.calculatePlacementRevenue(ad2, area1, ads, schedule, 0.5);
-            expect(revenue).toBeCloseTo((200*0.5*1.5));
+            expect(revenue).toBeCloseTo(200 * 0.5 * 1.5);
         });
 
         it('should apply decay rate to higher revenue ads when advertiser ad is playing in parallel', () => {
@@ -206,10 +221,13 @@ describe('RevenueEngine', () => {
             const ad2 = createTestAd('ad2', 'adv1', { baseRevenue: 200 });
             const area1 = createTestArea('area1', 'main', { multiplier: 1.5 });
             const ads: Ad[] = [ad1, ad2];
-            const schedule: Schedule = {area1: [createTestScheduledAd('ad1', 'area1', 0, 5)]};
+            const schedule: Schedule = {
+                area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
+            };
 
             const revenue = revenueEngine.calculatePlacementRevenue(ad2, area1, ads, schedule, 0.5);
-            expect(revenue).toBeCloseTo(200*0.5*1.5);
+            expect(revenue).toBeCloseTo(200 * 0.5 * 1.5);
+        });
 
         it('should return full base * multiplier when schedule is empty for that advertiser', () => {
             const ad = createTestAd('ad1', 'adv1', { baseRevenue: 80 });
@@ -241,6 +259,7 @@ describe('RevenueEngine', () => {
                 createTestAd('ad2', 'adv2'),
             ];
             const schedule: Schedule = {};
+
             expect(revenueEngine.getAdvertiserDiversity(ads, schedule)).toBe(0);
         });
 
@@ -285,6 +304,7 @@ describe('RevenueEngine', () => {
             const schedule: Schedule = {
                 area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
             };
+
             expect(revenueEngine.getAdvertiserDiversity(ads, schedule)).toBe(1);
         });
     });
@@ -309,7 +329,13 @@ describe('RevenueEngine', () => {
                 area1: [createTestScheduledAd('ad2', 'area1', 0, 10)],
             };
 
-            const result = revenueEngine.compareSchedules(defaultAds, defaultAreas, scheduleA, scheduleB, decayRate);
+            const result = revenueEngine.compareSchedules(
+                defaultAds,
+                defaultAreas,
+                scheduleA,
+                scheduleB,
+                decayRate
+            );
             expect(result).toBeGreaterThan(0);
         });
 
@@ -322,7 +348,13 @@ describe('RevenueEngine', () => {
                 area2: [createTestScheduledAd('ad2', 'area2', 0, 10)],
             };
 
-            const result = revenueEngine.compareSchedules(defaultAds, defaultAreas, scheduleA, scheduleB, decayRate);
+            const result = revenueEngine.compareSchedules(
+                defaultAds,
+                defaultAreas,
+                scheduleA,
+                scheduleB,
+                decayRate
+            );
             expect(result).toBeLessThan(0);
         });
 
@@ -331,7 +363,13 @@ describe('RevenueEngine', () => {
                 area1: [createTestScheduledAd('ad1', 'area1', 0, 10)],
             };
 
-            const result = revenueEngine.compareSchedules(defaultAds, defaultAreas, schedule, { ...schedule }, decayRate);
+            const result = revenueEngine.compareSchedules(
+                defaultAds,
+                defaultAreas,
+                schedule,
+                { ...schedule },
+                decayRate
+            );
             expect(result).toBe(0);
         });
 
@@ -434,7 +472,6 @@ describe('RevenueEngine', () => {
         });
     });
 
-    // Load Testing with 50 ads and 10 areas
     describe('Load Testing - RevenueEngine', () => {
         const LOAD_ADS_COUNT = 50;
         const LOAD_AREAS_COUNT = 10;
@@ -444,16 +481,20 @@ describe('RevenueEngine', () => {
             for (let i = 0; i < LOAD_ADS_COUNT; i++) {
                 ads.push(createTestAd(`ad${i}`, `adv${i % 5}`, { baseRevenue: 10 }));
             }
+
             const schedule: Schedule = {};
             for (let a = 0; a < LOAD_AREAS_COUNT; a++) {
                 schedule[`area${a}`] = [];
                 for (let i = 0; i < 5; i++) {
                     const ad = ads[a * 5 + i];
                     if (ad) {
-                        schedule[`area${a}`].push(createTestScheduledAd(ad.adId, `area${a}`, i * 10, i * 10 + 5));
+                        schedule[`area${a}`].push(
+                            createTestScheduledAd(ad.adId, `area${a}`, i * 10, i * 10 + 5)
+                        );
                     }
                 }
             }
+
             const count = revenueEngine.getAdvertiserScheduleCount('adv0', ads, schedule);
             expect(count).toBeGreaterThanOrEqual(0);
         });
@@ -463,16 +504,20 @@ describe('RevenueEngine', () => {
             for (let i = 0; i < LOAD_ADS_COUNT; i++) {
                 ads.push(createTestAd(`ad${i}`, `adv${i % 10}`));
             }
+
             const schedule: Schedule = {};
             for (let a = 0; a < LOAD_AREAS_COUNT; a++) {
                 schedule[`area${a}`] = [];
                 for (let i = 0; i < 5; i++) {
                     const idx = a * 5 + i;
                     if (idx < ads.length) {
-                        schedule[`area${a}`].push(createTestScheduledAd(ads[idx].adId, `area${a}`, i * 20, i * 20 + 10));
+                        schedule[`area${a}`].push(
+                            createTestScheduledAd(ads[idx].adId, `area${a}`, i * 20, i * 20 + 10)
+                        );
                     }
                 }
             }
+
             const diversity = revenueEngine.getAdvertiserDiversity(ads, schedule);
             expect(diversity).toBeGreaterThanOrEqual(0);
             expect(diversity).toBeLessThanOrEqual(10);
@@ -491,6 +536,7 @@ describe('RevenueEngine', () => {
                     createTestScheduledAd(ad.adId, 'area1', i * 10, i * 10 + 5)
                 ),
             };
+
             const revenue = revenueEngine.calculatePlacementRevenue(ads[0], area, ads, schedule, 0.5);
             expect(revenue).toBeLessThanOrEqual(100);
             expect(revenue).toBeGreaterThanOrEqual(0);
