@@ -6,7 +6,7 @@ module.exports = {
   testMatch: ['**/*.test.ts'],
   moduleFileExtensions: ['ts', 'js'],
   collectCoverageFrom: [
-    'src/**/*.ts',
+    '*.ts',
     '!jest.config.js',
   ],
   coverageDirectory: 'coverage',
