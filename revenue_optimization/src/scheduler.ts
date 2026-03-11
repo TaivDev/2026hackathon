@@ -1,12 +1,6 @@
 import { Ad, Area, Schedule, ScheduledAd, PlacementEngine } from './placementEngine';
 import { RevenueEngine } from './revenueEngine';
 
-export interface CandidatePlacement {
-    adId: string;
-    areaId: string;
-    startTime: number;
-}
-
 export class Scheduler {
     placementEngine: PlacementEngine;
     revenueEngine: RevenueEngine;
@@ -20,21 +14,21 @@ export class Scheduler {
         return 0;
     }
 
-    getValidCandidatePlacements(
-        ads: Ad[],
+    isValidSchedule(
+        schedule: Schedule,
         areas: Area[],
-        schedule: Schedule
-    ): CandidatePlacement[] {
-        return [];
+        ads: Ad[]
+    ): boolean {
+        return false;
     }
 
-    selectBestNextPlacement(
+    getAreaRevenue(
+        area: Area,
+        fullSchedule: Schedule,
         ads: Ad[],
-        areas: Area[],
-        schedule: Schedule,
         decayRate: number
-    ): CandidatePlacement | null {
-        return null;
+    ): number {
+        return 0;
     }
 
     buildOptimizedSchedule(
