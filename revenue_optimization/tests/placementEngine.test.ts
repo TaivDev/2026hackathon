@@ -84,43 +84,6 @@ describe('PlacementEngine', () => {
         });
     });
 
-    describe('calculateBasePlacementRevenue', () => {
-        it('should calculate base revenue using baseRevenue × multiplier', () => {
-            const ad = createTestAd('1', { baseRevenue: 100 });
-            const area = createTestArea('1', { multiplier: 2 });
-
-            expect(placementEngine.calculateBasePlacementRevenue(ad, area)).toBe(200);
-        });
-
-        it('should return 0 when baseRevenue is 0', () => {
-            const ad = createTestAd('1', { baseRevenue: 0 });
-            const area = createTestArea('1', { multiplier: 2 });
-
-            expect(placementEngine.calculateBasePlacementRevenue(ad, area)).toBe(0);
-        });
-
-        it('should handle decimal multipliers', () => {
-            const ad = createTestAd('1', { baseRevenue: 80 });
-            const area = createTestArea('1', { multiplier: 1.25 });
-
-            expect(placementEngine.calculateBasePlacementRevenue(ad, area)).toBe(100);
-        });
-
-        it('should handle multipliers less than 1', () => {
-            const ad = createTestAd('1', { baseRevenue: 100 });
-            const area = createTestArea('1', { multiplier: 0.5 });
-
-            expect(placementEngine.calculateBasePlacementRevenue(ad, area)).toBe(50);
-        });
-
-        it('should handle large values', () => {
-            const ad = createTestAd('1', { baseRevenue: 1000000 });
-            const area = createTestArea('1', { multiplier: 3 });
-
-            expect(placementEngine.calculateBasePlacementRevenue(ad, area)).toBe(3000000);
-        });
-    });
-
     describe('getTotalScheduledTimeForArea', () => {
         it('should return 0 for an empty schedule', () => {
             expect(placementEngine.getTotalScheduledTimeForArea([])).toBe(0);

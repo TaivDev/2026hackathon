@@ -34,10 +34,6 @@ export class PlacementEngine {
         return false;
     }
 
-    calculateBasePlacementRevenue(ad: Ad, area: Area): number {
-        return 0;
-    }
-
     getTotalScheduledTimeForArea(areaSchedule: ScheduledAd[]): number {
         return 0;
     }
