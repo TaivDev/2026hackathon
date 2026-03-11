@@ -71,7 +71,6 @@ type Schedule = Record<string, ScheduledAd[]>;
 | Method | Description |
 |--------|-------------|
 | `isAdCompatibleWithArea(ad, area)` | Return `true` if the ad is allowed to be played in the area, otherwise `false`. |
-| `calculateBasePlacementRevenue(ad, area)` | Return the base revenue for placing the ad in the area using `baseValue × multiplier`. |
 | `getTotalScheduledTimeForArea(areaSchedule)` | Return the total scheduled time for all ads in one area. |
 | `doesPlacementFitInAreaWindow(ad, area, areaSchedule, startTime)` | Return `true` if the ad placed at `startTime` would fully fit within the area's time window. |
 | `isAdAlreadyScheduled(adId, schedule)` | Return `true` if the ad has already been scheduled anywhere in the full schedule. |
