@@ -41,8 +41,8 @@ Handles core ad placement validation and basic revenue calculations.
 interface Ad {
     adId: string;
     advertiserId: string;
-    timeReceived: int;
-    timeout: int;
+    timeReceived: number;
+    timeout: number;
     duration: number;
     baseRevenue: number;
     bannedLocations: string[];
@@ -88,8 +88,8 @@ Handles advertiser-based scoring rules, diminishing returns, and schedule compar
 interface Ad {
     adId: string;
     advertiserId: string;
-    timeReceived: int;
-    timeout: int;
+    timeReceived: number;
+    timeout: number;
     duration: number;
     baseRevenue: number;
     bannedLocations: string[];
@@ -134,8 +134,8 @@ Builds candidate placements and generates an optimized schedule.
 interface Ad {
     adId: string;
     advertiserId: string;
-    timeReceived: int;
-    timeout: int;
+    timeReceived: number;
+    timeout: number;
     duration: number;
     baseRevenue: number;
     bannedLocations: string[];
