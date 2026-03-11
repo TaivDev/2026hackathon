@@ -31,7 +31,7 @@ export class Scheduler {
         return 0;
     }
 
-    buildOptimizedSchedule(
+    buildSchedule(
         ads: Ad[],
         areas: Area[],
         decayRate: number
