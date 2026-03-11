@@ -210,7 +210,8 @@ describe('RevenueEngine', () => {
 
             const revenue = revenueEngine.calculatePlacementRevenue(ad2, area1, ads, schedule, 0.5);
             expect(revenue).toBeCloseTo(200*0.5*1.5);
-
+        });
+        
         it('should return full base * multiplier when schedule is empty for that advertiser', () => {
             const ad = createTestAd('ad1', 'adv1', { baseRevenue: 80 });
             const area = createTestArea('area1', 'bar', { multiplier: 1.2 });
