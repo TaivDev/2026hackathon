@@ -76,7 +76,7 @@ type Schedule = Record<string, ScheduledAd[]>;
 | `doesPlacementFitInAreaWindow(ad, area, areaSchedule, startTime)` | Return `true` if the ad placed at `startTime` would fully fit within the area's time window. |
 | `isAdAlreadyScheduled(adId, schedule)` | Return `true` if the ad has already been scheduled anywhere in the full schedule. |
 | `canScheduleAd(ad, area, schedule, startTime)` | Return `true` only if the ad is compatible with the area, not already scheduled, and fits inside the area's available time window. |
-| `isAreaScheduleValid(area, areaSchedule)` | Return `true` if the area schedule is valid. Ads must not overlap and total scheduled time must not exceed the area's time window. |
+| `isAreaScheduleValid(area, areaSchedule, ads)` | Return `true` if the area schedule is valid. Ads must not overlap, total scheduled time must not exceed the area's time window, and every scheduled ad must be allowed in that area's location. |
 
 ---
 

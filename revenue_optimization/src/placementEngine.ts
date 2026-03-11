@@ -64,7 +64,7 @@ export class PlacementEngine {
         return false;
     }
 
-    isAreaScheduleValid(area: Area, areaSchedule: ScheduledAd[]): boolean {
+    isAreaScheduleValid(area: Area, areaSchedule: ScheduledAd[], ads: Ad[]): boolean {
         return false;
     }
 }
