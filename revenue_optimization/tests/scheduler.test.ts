@@ -45,12 +45,6 @@ describe('Scheduler', () => {
         endTime,
     });
 
-    describe('constructor', () => {
-        it('should create a Scheduler instance', () => {
-            expect(scheduler).toBeDefined();
-        });
-    });
-
     describe('getNextAvailableStartTime', () => {
         it('should return 0 for an empty schedule', () => {
             expect(scheduler.getNextAvailableStartTime([])).toBe(0);
