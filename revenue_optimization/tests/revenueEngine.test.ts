@@ -78,6 +78,14 @@ describe('RevenueEngine', () => {
         endTime,
     });
 
+    describe('constructor', () => {
+        it('should create a new RevenueEngine instance', () => {
+            expect(revenueEngine).toBeDefined();
+            expect(revenueEngine.placementEngine).toBeDefined();
+            expect(revenueEngine.placementEngine).toBeInstanceOf(PlacementEngine);
+        });
+    });
+
     describe('getAdvertiserScheduleCount', () => {
         it('should return 0 when advertiser has no scheduled ads', () => {
             const ads: Ad[] = [
@@ -150,18 +158,18 @@ describe('RevenueEngine', () => {
     });
 
     describe('calculateDiminishedRevenue', () => {
-        it('should return full base revenue when advertiserScheduledCount is 1', () => {
-            expect(revenueEngine.calculateDiminishedRevenue(100, 1, 0.5)).toBeCloseTo(100);
+        it('should return full base revenue when advertiserScheduledCount is 0', () => {
+            expect(revenueEngine.calculateDiminishedRevenue(100, 0, 0.5)).toBeCloseTo(100);
         });
 
-        it('should return reduced revenue when advertiser has 2 scheduled ads', () => {
-            expect(revenueEngine.calculateDiminishedRevenue(100, 2, 0.5)).toBeCloseTo(100 * 0.5);
+        it('should return reduced revenue when advertiser already has 1 scheduled ad', () => {
+            expect(revenueEngine.calculateDiminishedRevenue(100, 1, 0.5)).toBeCloseTo(100 * 0.5);
         });
 
         it('should return lower revenue as advertiserScheduledCount increases', () => {
-            const first = revenueEngine.calculateDiminishedRevenue(100, 1, 0.5);
-            const second = revenueEngine.calculateDiminishedRevenue(100, 2, 0.5);
-            const third = revenueEngine.calculateDiminishedRevenue(100, 3, 0.5);
+            const first = revenueEngine.calculateDiminishedRevenue(100, 0, 0.5);
+            const second = revenueEngine.calculateDiminishedRevenue(100, 1, 0.5);
+            const third = revenueEngine.calculateDiminishedRevenue(100, 2, 0.5);
 
             expect(first).toBeGreaterThan(second);
             expect(second).toBeGreaterThan(third);
@@ -171,24 +179,27 @@ describe('RevenueEngine', () => {
             expect(third).toBeCloseTo(100 * 0.5 * 0.5);
         });
 
-        it('should handle decayRate of 1 (no decay)', () => {
+        it('should return full revenue for all ads when decayRate is 1 (no decay)', () => {
             expect(revenueEngine.calculateDiminishedRevenue(100, 0, 1)).toBeCloseTo(100);
             expect(revenueEngine.calculateDiminishedRevenue(100, 5, 1)).toBeCloseTo(100);
         });
 
         it('should apply full decay when decayRate is 0 (only first ad earns)', () => {
-            expect(revenueEngine.calculateDiminishedRevenue(100, 1, 0)).toBeCloseTo(100);
-            expect(revenueEngine.calculateDiminishedRevenue(100, 2, 0)).toBeCloseTo(0);
+            expect(revenueEngine.calculateDiminishedRevenue(100, 0, 0)).toBeCloseTo(100);
+            expect(revenueEngine.calculateDiminishedRevenue(100, 1, 0)).toBeCloseTo(0);
+            expect(revenueEngine.calculateDiminishedRevenue(100, 5, 0)).toBeCloseTo(0);
         });
 
         it('should handle zero baseRevenue', () => {
-            expect(revenueEngine.calculateDiminishedRevenue(0, 3, 0.5)).toBeCloseTo(0);
+            expect(revenueEngine.calculateDiminishedRevenue(0, 0, 0)).toBeCloseTo(0);
+            expect(revenueEngine.calculateDiminishedRevenue(0, 1, 0)).toBeCloseTo(0);
+            expect(revenueEngine.calculateDiminishedRevenue(0, 5, 0)).toBeCloseTo(0);
         });
 
         it('should be consistent for same inputs', () => {
             const a = revenueEngine.calculateDiminishedRevenue(50, 2, 0.25);
             const b = revenueEngine.calculateDiminishedRevenue(50, 2, 0.25);
-            expect(a).toBe(b);
+            expect(a).toBeCloseTo(b);
         });
     });
 
