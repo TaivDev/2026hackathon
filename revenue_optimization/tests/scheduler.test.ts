@@ -277,7 +277,7 @@ describe('Scheduler', () => {
             expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(0);
         });
 
-        it('should treat decayRate 0 as no decay for repeated advertiser ads', () => {
+        it('should treat decayRate 1 as no decay for repeated advertiser ads', () => {
             const area = createTestArea('area1', 'main', { multiplier: 1 });
             const ads = [
                 createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
@@ -290,7 +290,7 @@ describe('Scheduler', () => {
                 ],
             };
 
-            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0)).toBe(200);
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 1)).toBe(200);
         });
 
         it('should return baseRevenue × multiplier for one ad in the target area', () => {
@@ -381,7 +381,7 @@ describe('Scheduler', () => {
             expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(450);
         });
 
-        it('should return unchanged revenue when decayRate is 1', () => {
+        it('should return full revenue for all ads when decayRate is 1 (no decay)', () => {
             const area = createTestArea('area1', 'main', { multiplier: 1 });
             const ads = [
                 createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
@@ -395,6 +395,23 @@ describe('Scheduler', () => {
             };
 
             expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 1)).toBe(200);
+        });
+
+        it('should return only first ad revenue per advertiser when decayRate is 0', () => {
+            const area = createTestArea('area1', 'main', { multiplier: 1 });
+            const ads = [
+                createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
+                createTestAd('ad2', 'adv1', { baseRevenue: 100 }),
+            ];
+            const fullSchedule: Schedule = {
+                area1: [
+                    createTestScheduledAd('ad1', 'area1', 0, 10),
+                    createTestScheduledAd('ad2', 'area1', 20, 30),
+                ],
+            };
+
+            // With decayRate 0, only first ad from each advertiser earns: 100 + 0 = 100
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0)).toBe(100);
         });
 
         it('should apply exponential decay correctly when decayRate is 0.5', () => {
@@ -500,6 +517,34 @@ describe('Scheduler', () => {
 
             const revenue = scheduler.getAreaRevenue(targetArea, fullSchedule, ads, 0.5);
             expect(revenue).toBeGreaterThan(0);
+        });
+    });
+
+    describe('buildSchedule', () => {
+        it('should return a valid schedule when given ads and areas', () => {
+            const areas = [
+                createTestArea('area1', 'main', { timeWindow: 100 }),
+                createTestArea('area2', 'bar', { timeWindow: 100 }),
+            ];
+            const ads = [
+                createTestAd('ad1', 'adv1', { duration: 5 }),
+                createTestAd('ad2', 'adv2', { duration: 5 }),
+            ];
+
+            const schedule = scheduler.buildSchedule(ads, areas, 0.5);
+
+            expect(scheduler.isValidSchedule(schedule, areas, ads)).toBe(true);
+            expect(typeof schedule).toBe('object');
+        });
+
+        it('should return an empty schedule when given no ads', () => {
+            const areas = [createTestArea('area1', 'main', { timeWindow: 100 })];
+            const ads: Ad[] = [];
+
+            const schedule = scheduler.buildSchedule(ads, areas, 0.5);
+
+            expect(schedule).toEqual({});
+            expect(scheduler.isValidSchedule(schedule, areas, ads)).toBe(true);
         });
     });
 });

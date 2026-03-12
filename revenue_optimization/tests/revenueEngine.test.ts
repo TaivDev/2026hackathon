@@ -171,9 +171,14 @@ describe('RevenueEngine', () => {
             expect(third).toBeCloseTo(100 * 0.5 * 0.5);
         });
 
-        it('should handle decayRate of 0 (no decay)', () => {
-            expect(revenueEngine.calculateDiminishedRevenue(100, 0, 0)).toBeCloseTo(100);
-            expect(revenueEngine.calculateDiminishedRevenue(100, 5, 0)).toBeCloseTo(100);
+        it('should handle decayRate of 1 (no decay)', () => {
+            expect(revenueEngine.calculateDiminishedRevenue(100, 0, 1)).toBeCloseTo(100);
+            expect(revenueEngine.calculateDiminishedRevenue(100, 5, 1)).toBeCloseTo(100);
+        });
+
+        it('should apply full decay when decayRate is 0 (only first ad earns)', () => {
+            expect(revenueEngine.calculateDiminishedRevenue(100, 1, 0)).toBeCloseTo(100);
+            expect(revenueEngine.calculateDiminishedRevenue(100, 2, 0)).toBeCloseTo(0);
         });
 
         it('should handle zero baseRevenue', () => {
@@ -234,7 +239,7 @@ describe('RevenueEngine', () => {
             expect(revenue).toBe(80 * 1.2);
         });
 
-        it('should handle zero decay rate', () => {
+        it('should handle decay rate of 1 (no decay) for second ad from same advertiser', () => {
             const ad = createTestAd('ad2', 'adv1', { baseRevenue: 50 });
             const area = createTestArea('area1', 'main', { multiplier: 2 });
             const ads: Ad[] = [createTestAd('ad1', 'adv1'), ad];
@@ -242,7 +247,7 @@ describe('RevenueEngine', () => {
                 area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
             };
 
-            const revenue = revenueEngine.calculatePlacementRevenue(ad, area, ads, schedule, 0);
+            const revenue = revenueEngine.calculatePlacementRevenue(ad, area, ads, schedule, 1);
             expect(revenue).toBe(100);
         });
 
@@ -462,7 +467,7 @@ describe('RevenueEngine', () => {
                 ],
             };
 
-            const result = revenueEngine.compareSchedules(ads, defaultAreas, scheduleA, scheduleB, 0);
+            const result = revenueEngine.compareSchedules(ads, defaultAreas, scheduleA, scheduleB, 1);
             expect(result).toBeGreaterThan(0);
         });
 
@@ -486,7 +491,7 @@ describe('RevenueEngine', () => {
                 ],
             };
 
-            const result = revenueEngine.compareSchedules(ads, defaultAreas, scheduleA, scheduleB, 0);
+            const result = revenueEngine.compareSchedules(ads, defaultAreas, scheduleA, scheduleB, 1);
             expect(result).toBeLessThan(0);
         });
 
