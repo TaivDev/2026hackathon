@@ -25,7 +25,7 @@ export class RevenueEngine {
 
     calculatePlacementRevenue(
         ad: Ad,
-        area: Area,
+        areas: Area[],
         ads: Ad[],
         schedule: Schedule,
         decayRate: number

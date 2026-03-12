@@ -102,7 +102,7 @@ Handles advertiser-based scoring rules, diminishing returns, and schedule compar
 |--------|-------------|
 | `getAdvertiserScheduleCount(advertiserId, ads, schedule)` | Return how many scheduled ads belong to the given advertiser across the full schedule. Return `0` if the advertiser is not in the ads list or has no scheduled ads. |
 | `calculateDiminishedRevenue(baseRevenue, advertiserScheduledCount, decayRate)` | Return the reduced revenue after applying diminishing returns. Use the advertiser’s scheduled count to determine how many times decay should be applied. When `advertiserScheduledCount` is `0`, treat the placement as the first (k=1), so the multiplier is 1 and the result is full `baseRevenue`. |
-| `calculatePlacementRevenue(ad, area, ads, schedule, decayRate)` | Return the final revenue for placing one ad in one area, including the area’s multiplier and advertiser decay. |
+| `calculatePlacementRevenue(ad, areas, ads, schedule, decayRate)` | Return the final revenue for placing one ad in one area, including the area’s multiplier and advertiser decay. |
 | `getAdvertiserDiversity(ads, schedule)` | Return the number of unique advertisers represented in the schedule. |
 | `compareSchedules(ads, areas, scheduleA, scheduleB, decayRate)` | Compare two valid schedules. Prefer higher total revenue. If tied, prefer less unused time. If still tied, prefer greater advertiser diversity. Return a positive number if `scheduleA` is better, a negative number if `scheduleB` is better, or `0` if they are equivalent. |
 
@@ -158,12 +158,11 @@ baseRevenue × area.multiplier
 
 ### Decay Ordering Rule
 
-When calculating advertiser decay, sort all scheduled ads across all areas using this order:
+When calculating advertiser decay, sort all scheduled ads from the same advertiser across all areas using this order:
 
 1. `startTime` ascending
 2. raw placement revenue ascending (`baseRevenue × area.multiplier`) — lower revenue first
 3. lexicographically smaller `adId`
-4. lexicographically smaller `areaId`
 
 This ordering must be deterministic.
 

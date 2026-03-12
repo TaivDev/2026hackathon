@@ -208,9 +208,11 @@ describe('RevenueEngine', () => {
             const ad = createTestAd('ad1', 'adv1', { baseRevenue: 100 });
             const area = createTestArea('area1', 'main', { multiplier: 1.5 });
             const ads: Ad[] = [ad];
-            const schedule: Schedule = {};
+            const schedule: Schedule = {
+                area1: [createTestScheduledAd('ad1', 'area1', 0, 5)]
+            };
 
-            const revenue = revenueEngine.calculatePlacementRevenue(ad, area, ads, schedule, 0.5);
+            const revenue = revenueEngine.calculatePlacementRevenue(ad, [area], ads, schedule, 0.5);
             expect(revenue).toBeCloseTo(100 * 1.5);
         });
 
@@ -220,10 +222,29 @@ describe('RevenueEngine', () => {
             const area1 = createTestArea('area1', 'main', { multiplier: 1.5 });
             const ads: Ad[] = [ad1, ad2];
             const schedule: Schedule = {
-                area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
+                area1: [
+                    createTestScheduledAd('ad1', 'area1', 0, 5),
+                    createTestScheduledAd('ad2', 'area1', 5, 10),
+                ],
             };
 
-            const revenue = revenueEngine.calculatePlacementRevenue(ad2, area1, ads, schedule, 0.5);
+            const revenue = revenueEngine.calculatePlacementRevenue(ad2, [area1], ads, schedule, 0.5);
+            expect(revenue).toBeCloseTo(200 * 0.5 * 1.5);
+        });
+
+        it('should apply diminishing returns when advertiser has existing scheduled ad in different areas', () => {
+            const ad1 = createTestAd('ad1', 'adv1', { baseRevenue: 100 });
+            const ad2 = createTestAd('ad2', 'adv1', { baseRevenue: 200 });
+            const area1 = createTestArea('area1', 'main', { multiplier: 1.5 });
+            const area2 = createTestArea('area2', 'bar', { multiplier: 2 });
+            const ads: Ad[] = [ad1, ad2];
+            const areas: Area[] = [area1, area2];
+            const schedule: Schedule = {
+                area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
+                area2: [createTestScheduledAd('ad2', 'area2', 5, 10)],
+            };
+
+            const revenue = revenueEngine.calculatePlacementRevenue(ad2, areas, ads, schedule, 0.5);
             expect(revenue).toBeCloseTo(200 * 0.5 * 1.5);
         });
 
@@ -231,65 +252,119 @@ describe('RevenueEngine', () => {
             const ad1 = createTestAd('ad1', 'adv1', { baseRevenue: 100 });
             const ad2 = createTestAd('ad2', 'adv1', { baseRevenue: 200 });
             const area1 = createTestArea('area1', 'main', { multiplier: 1.5 });
+            const area2 = createTestArea('area2', 'bar', { multiplier: 2 });
             const ads: Ad[] = [ad1, ad2];
+            const areas: Area[] = [area1, area2];
             const schedule: Schedule = {
                 area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
+                area2: [createTestScheduledAd('ad2', 'area2', 0, 5)],
             };
 
-            const revenue = revenueEngine.calculatePlacementRevenue(ad2, area1, ads, schedule, 0.5);
-            expect(revenue).toBeCloseTo(200 * 0.5 * 1.5);
-        });
+            const revenue = revenueEngine.calculatePlacementRevenue(ad1, areas, ads, schedule, 0.5);
+            expect(revenue).toBeCloseTo(100 * 1.5);
 
-        it('should return full base * multiplier when schedule is empty for that advertiser', () => {
-            const ad = createTestAd('ad1', 'adv1', { baseRevenue: 80 });
-            const area = createTestArea('area1', 'bar', { multiplier: 1.2 });
-            const ads: Ad[] = [ad];
-            const schedule: Schedule = {};
-
-            const revenue = revenueEngine.calculatePlacementRevenue(ad, area, ads, schedule, 0.5);
-            expect(revenue).toBe(80 * 1.2);
+            const revenue2 = revenueEngine.calculatePlacementRevenue(ad2, areas, ads, schedule, 0.5);
+            expect(revenue2).toBeCloseTo(200 * 0.5 * 2);
         });
 
         it('should handle decay rate of 1 (no decay) for second ad from same advertiser', () => {
-            const ad = createTestAd('ad2', 'adv1', { baseRevenue: 50 });
+            const ad1 = createTestAd('ad1', 'adv1', { baseRevenue: 100 });
+            const ad2 = createTestAd('ad2', 'adv1', { baseRevenue: 200 });
+
             const area = createTestArea('area1', 'main', { multiplier: 2 });
-            const ads: Ad[] = [createTestAd('ad1', 'adv1'), ad];
+            const ads: Ad[] = [ad1, ad2];
             const schedule: Schedule = {
-                area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
+                area1: [
+                    createTestScheduledAd('ad1', 'area1', 0, 5),
+                    createTestScheduledAd('ad2', 'area1', 5, 10),
+                ],
             };
 
-            const revenue = revenueEngine.calculatePlacementRevenue(ad, area, ads, schedule, 1);
-            expect(revenue).toBe(100);
+            const revenue1 = revenueEngine.calculatePlacementRevenue(ad1, [area], ads, schedule, 1);
+            expect(revenue1).toBeCloseTo(100 * 2);
+
+            const revenue2 = revenueEngine.calculatePlacementRevenue(ad2, [area], ads, schedule, 1);
+            expect(revenue2).toBeCloseTo(200 * 2);
+        });
+
+        it('should handle decay rate of 0 for second ad from same advertiser', () => {
+            const ad1 = createTestAd('ad1', 'adv1', { baseRevenue: 100 });
+            const ad2 = createTestAd('ad2', 'adv1', { baseRevenue: 200 });
+
+            const area = createTestArea('area1', 'main', { multiplier: 2 });
+            const ads: Ad[] = [ad1, ad2];
+            const schedule: Schedule = {
+                area1: [
+                    createTestScheduledAd('ad1', 'area1', 0, 5),
+                    createTestScheduledAd('ad2', 'area1', 5, 10),
+                ],
+            };
+
+            const revenue1 = revenueEngine.calculatePlacementRevenue(ad1, [area], ads, schedule, 0);
+            expect(revenue1).toBeCloseTo(100 * 2);
+
+            const revenue2 = revenueEngine.calculatePlacementRevenue(ad2, [area], ads, schedule, 0);
+            expect(revenue2).toBeCloseTo(0);
         });
 
         it('should use lexicographically smaller adId first when startTime and raw revenue are tied', () => {
             const adA = createTestAd('adA', 'adv1', { baseRevenue: 100 });
             const adB = createTestAd('adB', 'adv1', { baseRevenue: 100 });
-            const area = createTestArea('area1', 'main', { multiplier: 1.0 });
+            const area1 = createTestArea('area1', 'main', { multiplier: 1.0 });
+            const area2 = createTestArea('area2', 'bar', { multiplier: 1.0 });
+            const areas: Area[] = [area1, area2];
 
             const ads: Ad[] = [adA, adB];
             const schedule: Schedule = {
                 area1: [createTestScheduledAd('adA', 'area1', 0, 5)],
+                area2: [createTestScheduledAd('adB', 'area2', 0, 5)],
             };
 
-            const revenue = revenueEngine.calculatePlacementRevenue(adB, area, ads, schedule, 0.5);
-            expect(revenue).toBeCloseTo(50);
+            const revenue1 = revenueEngine.calculatePlacementRevenue(adA, areas, ads, schedule, 0.5);
+            expect(revenue1).toBeCloseTo(100 * 1.0);
+
+            const revenue2 = revenueEngine.calculatePlacementRevenue(adB, areas, ads, schedule, 0.5);
+            expect(revenue2).toBeCloseTo(100 * 0.5 * 1.0);
         });
 
-        it('should use lexicographically smaller areaId first when startTime, raw revenue, and ad ordering tie', () => {
-            const ad1 = createTestAd('ad1', 'adv1', { baseRevenue: 100 });
-            const ad2 = createTestAd('ad2', 'adv1', { baseRevenue: 100 });
+        it('should handle decay rate of 0 when startTime is tied for second ad from same advertiser', () => {
+            const adA = createTestAd('adA', 'adv1', { baseRevenue: 100 });
+            const adB = createTestAd('adB', 'adv1', { baseRevenue: 200 });
+            const area1 = createTestArea('area1', 'main', { multiplier: 1.0 });
+            const area2 = createTestArea('area2', 'bar', { multiplier: 1.0 });
+            const areas: Area[] = [area1, area2];
+            const ads: Ad[] = [adA, adB];
 
-            const areaA = createTestArea('areaA', 'main', { multiplier: 1.0 });
-            const areaB = createTestArea('areaB', 'bar', { multiplier: 1.0 });
-
-            const ads: Ad[] = [ad1, ad2];
             const schedule: Schedule = {
-                areaA: [createTestScheduledAd('ad1', 'areaA', 0, 5)],
+                area1: [createTestScheduledAd('adA', 'area1', 0, 5)],
+                area2: [createTestScheduledAd('adB', 'area2', 0, 5)],
             };
 
-            const revenue = revenueEngine.calculatePlacementRevenue(ad2, areaB, ads, schedule, 0.5);
-            expect(revenue).toBeCloseTo(50);
+            const revenue1 = revenueEngine.calculatePlacementRevenue(adA, areas, ads, schedule, 0);
+            expect(revenue1).toBeCloseTo(100);
+
+            const revenue2 = revenueEngine.calculatePlacementRevenue(adB, areas, ads, schedule, 0);
+            expect(revenue2).toBeCloseTo(0);
+        });
+
+        it('should consider raw placement revenue (i.e. baseRevenue * multiplier) when startTime is tied', () => {
+            const ad1 = createTestAd('ad1', 'adv1', { baseRevenue: 100 });
+            const ad2 = createTestAd('ad2', 'adv1', { baseRevenue: 200 });
+            const area1 = createTestArea('area1', 'main', { multiplier: 5.0 });
+            const area2 = createTestArea('area2', 'bar', { multiplier: 2.0 });
+            const areas: Area[] = [area1, area2];
+            const ads: Ad[] = [ad1, ad2];
+
+            const schedule: Schedule = {
+                area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
+                area2: [createTestScheduledAd('ad2', 'area2', 0, 5)],
+            };
+
+            const revenue1 = revenueEngine.calculatePlacementRevenue(ad1, areas, ads, schedule, 0.5);
+            expect(revenue1).toBeCloseTo(100 * 5.0 * 0.5);
+
+            const revenue2 = revenueEngine.calculatePlacementRevenue(ad2, areas, ads, schedule, 0.5);
+            expect(revenue2).toBeCloseTo(200 * 2.0);
         });
     });
 
@@ -580,7 +655,7 @@ describe('RevenueEngine', () => {
                 ),
             };
 
-            const revenue = revenueEngine.calculatePlacementRevenue(ads[0], area, ads, schedule, 0.5);
+            const revenue = revenueEngine.calculatePlacementRevenue(ads[0], [area], ads, schedule, 0.5);
             expect(revenue).toBeLessThanOrEqual(100);
             expect(revenue).toBeGreaterThanOrEqual(0);
         });
