@@ -42,6 +42,8 @@ interface Ad {
     advertiserId: string;
     timeReceived: number;
     timeout: number;
+    timeReceived: number;
+    timeout: number;
     duration: number;
     baseRevenue: number;
     bannedLocations: string[];
