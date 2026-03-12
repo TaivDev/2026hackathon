@@ -459,7 +459,11 @@ describe('PlacementEngine', () => {
 
         it('should return true for multiple non-overlapping ads with gaps', () => {
             const area = createTestArea('area1', 'main', { timeWindow: 100 });
-            const ads = [createTestAd('ad1', 'adv1'), createTestAd('ad2', 'adv1'), createTestAd('ad3', 'adv1')];
+            const ads = [
+                createTestAd('ad1', 'adv1', { timeout: 60 }),
+                createTestAd('ad2', 'adv1', { timeout: 60 }),
+                createTestAd('ad3', 'adv1', { timeout: 60 }),
+            ];
             const areaSchedule = [
                 createTestScheduledAd('ad1', 'area1', 0, 10),
                 createTestScheduledAd('ad2', 'area1', 20, 30),
