@@ -27,6 +27,7 @@ describe('PlacementEngine', () => {
         ...overrides,
     });
 
+    // startTime inclusive, endTime exclusive; duration = endTime - startTime; next ad can start at endTime
     const createScheduledAd = (
         adId: string,
         areaId: string,

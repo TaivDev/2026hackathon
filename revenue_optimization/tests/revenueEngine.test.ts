@@ -66,6 +66,7 @@ describe('RevenueEngine', () => {
         ...overrides,
     });
 
+    // startTime inclusive, endTime exclusive; duration = endTime - startTime; next ad can start at endTime
     const createTestScheduledAd = (
         adId: string,
         areaId: string,

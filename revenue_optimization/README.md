@@ -65,6 +65,14 @@ interface ScheduledAd {
 type Schedule = Record<string, ScheduledAd[]>;
 ```
 
+**Time semantics:** `startTime` is **inclusive** and `endTime` is **exclusive**.
+
+- An ad with `startTime: 0` and `endTime: 10` plays during time units 0, 2, …, 9 (10 units). It does **not** play during time unit 11.
+- If an ad **ends at time unit 10** (i.e. has `endTime: 10`), it plays up to but not including 10, so the next ad **can start at time unit 10**.
+- Duration in time units is `endTime - startTime`.
+- Two ads in the same area do not overlap if the first has `endTime: E` and the next has `startTime >= E`.
+- The area time window is from time `0` up to but not including `area.timeWindow` (i.e. valid start times are in `[0, area.timeWindow)` for the ad to fit).
+
 ### 1. PlacementEngine (`src/placementEngine.ts`)
 
 Handles ad placement validation, schedule checks, and time-window checks.
@@ -177,7 +185,7 @@ If two schedules have the same total revenue:
 - `decayRate` is expected to be between `0` and `1`, inclusive.
 - Touching boundaries are allowed. For example, one ad ending at time `10` and another starting at time `10` in the same area is valid.
 - Input schedules may be unsorted. Validation logic should still handle them correctly.
-- Each area’s schedule must stay within the time range from `0` to `area.timeWindow`, inclusive of valid end boundaries.
+- Each area’s schedule must stay within the time range from `0` to `area.timeWindow`, an ad's endTime must be ≤ area.timeWindow (endTime is exclusive).
 - All outputs must be deterministic.
 
 ---
