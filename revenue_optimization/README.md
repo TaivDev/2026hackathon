@@ -42,8 +42,6 @@ interface Ad {
     advertiserId: string;
     timeReceived: number;
     timeout: number;
-    timeReceived: number;
-    timeout: number;
     duration: number;
     baseRevenue: number;
     bannedLocations: string[];
@@ -77,10 +75,10 @@ Handles ad placement validation, schedule checks, and time-window checks.
 |--------|-------------|
 | `isAdCompatibleWithArea(ad, area)` | Return `true` if the ad is allowed to be played in the area, otherwise `false`. Use exact string matching for banned locations. |
 | `getTotalScheduledTimeForArea(areaSchedule)` | Return the total scheduled time for all ads in one area. This should be the sum of each scheduled ad’s duration (`endTime - startTime`), not the full span from first start to last end. |
-| `doesPlacementFitInAreaWindow(ad, area, areaSchedule, startTime)` | Return `true` only if the ad can start at `startTime`, starts within its allowed availability window, and fully fits within the area’s time window. |
+| `doesPlacementFitTimingConstraints(ad, area, areaSchedule, startTime)` | Return `true` only if the ad can start at `startTime`, starts within its allowed availability window, and fully fits within the area’s time window. |
 | `isAdAlreadyScheduled(adId, schedule)` | Return `true` if the ad has already been scheduled anywhere in the full schedule. |
 | `canScheduleAd(ad, area, schedule, startTime)` | Return `true` only if the ad is compatible with the area, not already scheduled anywhere, does not overlap an existing ad in that area, and fits within all required timing constraints. |
-| `isAreaScheduleValid(area, areaSchedule, ads)` | Return `true` if the area schedule is valid. Ads must not overlap, total scheduled time must not exceed the area’s time window, every scheduled ad must exist in the ads list, and every scheduled ad must be allowed in that area’s location. |
+| `isAreaScheduleValid(area, areaSchedule, ads)` | Return `true` if the area schedule is valid. Ads must not overlap, every scheduled ad must exist in the ads list, every scheduled ad must be allowed in that area’s location, and every scheduled ad must fit within the area’s time window. |
 
 ---
 
@@ -139,8 +137,12 @@ baseRevenue × area.multiplier
 ```
 
 - If multiple ads from the same advertiser are scheduled, later ads from that advertiser earn reduced revenue.
-- Diminishing returns are applied using the decay rate as an exponent-based multiplier.
-- Advertiser decay must be determined using the full schedule, not just one area.
+- The first scheduled ad from an advertiser earns full revenue.
+- For the k-th scheduled ad from the same advertiser in the global decay ordering, apply a decay multiplier of:
+
+`decayRate^(k - 1)`
+
+- For example, if `decayRate = 0.5`, then the first ad gets full revenue, the second gets multiplied by `0.5`, and the third gets multiplied by `0.25`.
 
 ### Decay Ordering Rule
 
@@ -174,6 +176,8 @@ If two schedules have the same total revenue:
 - `multiplier` is positive.
 - `decayRate` is expected to be between `0` and `1`, inclusive.
 - Touching boundaries are allowed. For example, one ad ending at time `10` and another starting at time `10` in the same area is valid.
+- Input schedules may be unsorted. Validation logic should still handle them correctly.
+- Each area’s schedule must stay within the time range from `0` to `area.timeWindow`, inclusive of valid end boundaries.
 - All outputs must be deterministic.
 
 ---

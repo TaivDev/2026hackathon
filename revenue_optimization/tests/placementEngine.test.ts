@@ -39,12 +39,6 @@ describe('PlacementEngine', () => {
         endTime,
     });
 
-    describe('constructor', () => {
-        it('should create a PlacementEngine instance', () => {
-            expect(placementEngine).toBeDefined();
-        });
-    });
-
     describe('isAdCompatibleWithArea', () => {
         it('should return true when area location is not banned', () => {
             const ad = createTestAd('1', { bannedLocations: ['bar', 'patio'] });
@@ -125,7 +119,7 @@ describe('PlacementEngine', () => {
         });
     });
 
-    describe('doesPlacementFitInAreaWindow', () => {
+    describe('doesPlacementFitTimingConstraints', () => {
         it('should return true when placement fits in both ad availability and area time window', () => {
             const ad = createTestAd('1', {
                 timeReceived: 10,
@@ -135,7 +129,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('1', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitInAreaWindow(ad, area, [], 15)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 15)
             ).toBe(true);
         });
 
@@ -148,7 +142,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('1', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitInAreaWindow(ad, area, [], 10)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 10)
             ).toBe(true);
         });
 
@@ -161,7 +155,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('1', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitInAreaWindow(ad, area, [], 30)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 30)
             ).toBe(true);
         });
 
@@ -174,7 +168,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('1', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitInAreaWindow(ad, area, [], 9)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 9)
             ).toBe(false);
         });
 
@@ -187,7 +181,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('1', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitInAreaWindow(ad, area, [], 31)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 31)
             ).toBe(false);
         });
 
@@ -200,7 +194,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('1', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitInAreaWindow(ad, area, [], 80)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 80)
             ).toBe(true);
         });
 
@@ -213,7 +207,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('1', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitInAreaWindow(ad, area, [], 80)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 80)
             ).toBe(false);
         });
 
@@ -226,7 +220,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('1', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitInAreaWindow(ad, area, [], -1)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, -1)
             ).toBe(false);
         });
     });
@@ -384,6 +378,19 @@ describe('PlacementEngine', () => {
 
             expect(placementEngine.canScheduleAd(ad, area, schedule, 0)).toBe(true);
         });
+
+        it('should return false when placement overlaps an existing ad in an unsorted area schedule', () => {
+            const ad = createTestAd('3', { duration: 10 });
+            const area = createTestArea('1', { location: 'main' });
+            const schedule: Schedule = {
+                '1': [
+                    createScheduledAd('2', '1', 30, 40),
+                    createScheduledAd('1', '1', 10, 20),
+                ],
+            };
+
+            expect(placementEngine.canScheduleAd(ad, area, schedule, 15)).toBe(false);
+        });
     });
 
     describe('isAreaScheduleValid', () => {
@@ -509,6 +516,62 @@ describe('PlacementEngine', () => {
             const areaSchedule = [createScheduledAd('1', '1', 0, 10)];
 
             expect(placementEngine.isAreaScheduleValid(area, areaSchedule, ads)).toBe(false);
+        });
+    });
+
+    describe('Load Testing - PlacementEngine', () => {
+        const LOAD_SIZE = 100;
+
+        it('should find a scheduled ad across many areas and ads', () => {
+            const schedule: Schedule = {};
+
+            for (let i = 0; i < LOAD_SIZE; i++) {
+                schedule[`area${i}`] = [
+                    createScheduledAd(`ad${i}`, `area${i}`, i * 10, i * 10 + 10),
+                ];
+            }
+
+            expect(placementEngine.isAdAlreadyScheduled('ad73', schedule)).toBe(true);
+            expect(placementEngine.isAdAlreadyScheduled('missing_ad', schedule)).toBe(false);
+        });
+
+        it('should calculate total scheduled time for a long unsorted area schedule', () => {
+            const areaSchedule: ScheduledAd[] = [];
+
+            for (let i = 0; i < LOAD_SIZE; i++) {
+                areaSchedule.unshift(
+                    createScheduledAd(`ad${i}`, 'area1', i * 10, i * 10 + 10)
+                );
+            }
+
+            expect(placementEngine.getTotalScheduledTimeForArea(areaSchedule)).toBe(1000);
+        });
+
+        it('should validate a large non-overlapping area schedule', () => {
+            const area = createTestArea('1', { location: 'main', timeWindow: 1000 });
+            const ads: Ad[] = [];
+            const areaSchedule: ScheduledAd[] = [];
+
+            for (let i = 0; i < LOAD_SIZE; i++) {
+                ads.push(createTestAd(`${i}`, { duration: 10 }));
+                areaSchedule.push(createScheduledAd(`${i}`, '1', i * 10, i * 10 + 10));
+            }
+
+            expect(placementEngine.isAreaScheduleValid(area, areaSchedule, ads)).toBe(true);
+        });
+
+        it('should reject a placement near the end of a crowded area schedule when it exceeds the boundary', () => {
+            const area = createTestArea('1', { location: 'main', timeWindow: 1000 });
+            const schedule: Schedule = {
+                '1': [],
+            };
+
+            for (let i = 0; i < 99; i++) {
+                schedule['1'].push(createScheduledAd(`${i}`, '1', i * 10, i * 10 + 10));
+            }
+
+            const ad = createTestAd('new', { duration: 20 });
+            expect(placementEngine.canScheduleAd(ad, area, schedule, 990)).toBe(false);
         });
     });
 });

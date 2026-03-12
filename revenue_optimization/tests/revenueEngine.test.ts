@@ -250,6 +250,36 @@ describe('RevenueEngine', () => {
             const revenue = revenueEngine.calculatePlacementRevenue(ad, area, ads, schedule, 0);
             expect(revenue).toBe(100);
         });
+
+        it('should use lexicographically smaller adId first when startTime and raw revenue are tied', () => {
+            const adA = createTestAd('adA', 'adv1', { baseRevenue: 100 });
+            const adB = createTestAd('adB', 'adv1', { baseRevenue: 100 });
+            const area = createTestArea('area1', 'main', { multiplier: 1.0 });
+
+            const ads: Ad[] = [adA, adB];
+            const schedule: Schedule = {
+                area1: [createTestScheduledAd('adA', 'area1', 0, 5)],
+            };
+
+            const revenue = revenueEngine.calculatePlacementRevenue(adB, area, ads, schedule, 0.5);
+            expect(revenue).toBeCloseTo(50);
+        });
+
+        it('should use lexicographically smaller areaId first when startTime, raw revenue, and ad ordering tie', () => {
+            const ad1 = createTestAd('ad1', 'adv1', { baseRevenue: 100 });
+            const ad2 = createTestAd('ad2', 'adv1', { baseRevenue: 100 });
+
+            const areaA = createTestArea('areaA', 'main', { multiplier: 1.0 });
+            const areaB = createTestArea('areaB', 'bar', { multiplier: 1.0 });
+
+            const ads: Ad[] = [ad1, ad2];
+            const schedule: Schedule = {
+                areaA: [createTestScheduledAd('ad1', 'areaA', 0, 5)],
+            };
+
+            const revenue = revenueEngine.calculatePlacementRevenue(ad2, areaB, ads, schedule, 0.5);
+            expect(revenue).toBeCloseTo(50);
+        });
     });
 
     describe('getAdvertiserDiversity', () => {

@@ -38,7 +38,7 @@ export class PlacementEngine {
         return 0;
     }
 
-    doesPlacementFitInAreaWindow(
+    doesPlacementFitTimingConstraints(
         ad: Ad,
         area: Area,
         areaSchedule: ScheduledAd[],

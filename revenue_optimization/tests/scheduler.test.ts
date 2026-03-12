@@ -269,6 +269,22 @@ describe('Scheduler', () => {
             expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(0);
         });
 
+        it('should treat decayRate 0 as no decay for repeated advertiser ads', () => {
+            const area = createTestArea('area1', { multiplier: 1 });
+            const ads = [
+                createTestAd('1', { advertiserId: 'adv1', baseRevenue: 100 }),
+                createTestAd('2', { advertiserId: 'adv1', baseRevenue: 100 }),
+            ];
+            const fullSchedule: Schedule = {
+                area1: [
+                    createScheduledAd('1', 'area1', 0, 10),
+                    createScheduledAd('2', 'area1', 20, 30),
+                ],
+            };
+
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0)).toBe(200);
+        });
+
         it('should return baseRevenue × multiplier for one ad in the target area', () => {
             const area = createTestArea('area1', { multiplier: 2 });
             const ads = [createTestAd('1', { baseRevenue: 100 })];
@@ -277,6 +293,36 @@ describe('Scheduler', () => {
             };
 
             expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(200);
+        });
+
+        it('should use lexicographically smaller adId first when same advertiser ads have same start time and same raw revenue', () => {
+            const area = createTestArea('main', { multiplier: 1 });
+            const ads = [
+                createTestAd('adA', { advertiserId: 'adv1', baseRevenue: 100 }),
+                createTestAd('adB', { advertiserId: 'adv1', baseRevenue: 100 }),
+            ];
+            const fullSchedule: Schedule = {
+                main: [createScheduledAd('adB', 'main', 0, 10)],
+                bar: [createScheduledAd('adA', 'bar', 0, 10)],
+            };
+
+            // adA should be ordered first globally, so adB in main is decayed
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(50);
+        });
+
+        it('should use lexicographically smaller areaId first when same advertiser ads have same start time and same raw revenue', () => {
+            const areaB = createTestArea('areaB', { multiplier: 1 });
+            const ads = [
+                createTestAd('ad1', { advertiserId: 'adv1', baseRevenue: 100 }),
+                createTestAd('ad2', { advertiserId: 'adv1', baseRevenue: 100 }),
+            ];
+            const fullSchedule: Schedule = {
+                areaA: [createScheduledAd('ad1', 'areaA', 0, 10)],
+                areaB: [createScheduledAd('ad2', 'areaB', 0, 10)],
+            };
+
+            // areaA should be ordered first globally, so areaB ad is decayed
+            expect(scheduler.getAreaRevenue(areaB, fullSchedule, ads, 0.5)).toBe(50);
         });
 
         it('should apply decay to the second ad from the same advertiser in the same area', () => {
@@ -385,6 +431,70 @@ describe('Scheduler', () => {
 
             // bar ad (100) should come first globally, so main ad gets decayed
             expect(scheduler.getAreaRevenue(main, fullSchedule, ads, 0.5)).toBe(100);
+        });
+    });
+
+    describe('Load Testing - Scheduler', () => {
+        const LOAD_SIZE = 100;
+
+        it('should find the earliest gap in a long area schedule', () => {
+            const areaSchedule: ScheduledAd[] = [];
+
+            for (let i = 0; i < LOAD_SIZE; i++) {
+                if (i === 50) continue;
+                areaSchedule.push(createScheduledAd(`${i}`, 'area1', i * 10, i * 10 + 10));
+            }
+
+            expect(scheduler.getNextAvailableStartTime(areaSchedule)).toBe(500);
+        });
+
+        it('should validate a large multi-area schedule', () => {
+            const areas: Area[] = [];
+            const ads: Ad[] = [];
+            const schedule: Schedule = {};
+
+            for (let a = 0; a < 10; a++) {
+                const areaId = `area${a}`;
+                areas.push(createTestArea(areaId, { timeWindow: 1000 }));
+                schedule[areaId] = [];
+
+                for (let i = 0; i < 10; i++) {
+                    const adId = `${a}_${i}`;
+                    ads.push(createTestAd(adId, { duration: 10 }));
+                    schedule[areaId].push(
+                        createScheduledAd(adId, areaId, i * 10, i * 10 + 10)
+                    );
+                }
+            }
+
+            expect(scheduler.isValidSchedule(schedule, areas, ads)).toBe(true);
+        });
+
+        it('should calculate area revenue for a large schedule with repeated advertisers across areas', () => {
+            const targetArea = createTestArea('area0', { multiplier: 1 });
+            const ads: Ad[] = [];
+            const fullSchedule: Schedule = {};
+
+            for (let a = 0; a < 5; a++) {
+                const areaId = `area${a}`;
+                fullSchedule[areaId] = [];
+
+                for (let i = 0; i < 10; i++) {
+                    const adId = `${areaId}_ad${i}`;
+                    ads.push(
+                        createTestAd(adId, {
+                            advertiserId: `adv${i % 3}`,
+                            baseRevenue: 100,
+                        })
+                    );
+                    fullSchedule[areaId].push(
+                        createScheduledAd(adId, areaId, i * 10, i * 10 + 10)
+                    );
+                }
+            }
+
+            const revenue = scheduler.getAreaRevenue(targetArea, fullSchedule, ads, 0.5);
+            expect(revenue).toBeGreaterThan(0);
         });
     });
 });
