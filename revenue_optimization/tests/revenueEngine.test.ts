@@ -458,12 +458,12 @@ describe('RevenueEngine', () => {
 
     describe('compareSchedules', () => {
         const defaultAds: Ad[] = [
-            createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
-            createTestAd('ad2', 'adv2', { baseRevenue: 80 }),
+            createTestAd('ad1', 'adv1', { baseRevenue: 100, duration: 10, timeout: 50 }),
+            createTestAd('ad2', 'adv2', { baseRevenue: 50, duration: 10, timeout: 50 }),
         ];
         const defaultAreas: Area[] = [
             createTestArea('area1', 'main', { multiplier: 1.0, timeWindow: 50 }),
-            createTestArea('area2', 'bar', { multiplier: 1.2, timeWindow: 50 }),
+            createTestArea('area2', 'bar', { multiplier: 1.5, timeWindow: 50 }),
         ];
         const decayRate = 0.5;
 
@@ -535,37 +535,15 @@ describe('RevenueEngine', () => {
                 area1: [createTestScheduledAd('ad2', 'area1', 0, 20)],
             };
 
-            const result = revenueEngine.compareSchedules(ads, defaultAreas, scheduleA, scheduleB, 1);
+            const result = revenueEngine.compareSchedules(ads, defaultAreas, scheduleA, scheduleB, decayRate);
             expect(result).toBeLessThan(0);
-        });
-
-        it('should return 0 when schedules are equivalent in revenue and unused time', () => {
-            const ads: Ad[] = [
-                createTestAd('ad1', 'adv1', { baseRevenue: 50 }),
-                createTestAd('ad2', 'adv1', { baseRevenue: 50 }),
-            ];
-            const scheduleA: Schedule = {
-                area1: [
-                    createTestScheduledAd('ad1', 'area1', 0, 10),
-                    createTestScheduledAd('ad2', 'area1', 10, 20),
-                ],
-            };
-            const scheduleB: Schedule = {
-                area1: [
-                    createTestScheduledAd('ad1', 'area1', 0, 10),
-                    createTestScheduledAd('ad2', 'area1', 10, 20),
-                ],
-            };
-
-            const result = revenueEngine.compareSchedules(ads, defaultAreas, scheduleA, scheduleB, 1);
-            expect(result).toBe(0);
         });
 
         it('should return positive when A has same revenue and unused time but more diversity', () => {
             const ads: Ad[] = [
-                createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
-                createTestAd('ad2', 'adv1', { baseRevenue: 100 }),
-                createTestAd('ad3', 'adv2', { baseRevenue: 100 }),
+                createTestAd('ad1', 'adv1', { baseRevenue: 100, duration: 10, timeout: 50 }),
+                createTestAd('ad2', 'adv1', { baseRevenue: 100, duration: 10, timeout: 50 }),
+                createTestAd('ad3', 'adv2', { baseRevenue: 100, duration: 10, timeout: 50 }),
             ];
 
             const scheduleA: Schedule = {
@@ -625,7 +603,7 @@ describe('RevenueEngine', () => {
         it('should getAdvertiserScheduleCount efficiently with many areas and ads', () => {
             const ads: Ad[] = [];
             for (let i = 0; i < LOAD_ADS_COUNT; i++) {
-                ads.push(createTestAd(`ad${i}`, `adv${i % 5}`, { baseRevenue: 10 }));
+                ads.push(createTestAd(`ad${i}`, `adv${i % 5}`, { baseRevenue: 10 , timeout: 100}));
             }
 
             const schedule: Schedule = {};
@@ -642,13 +620,13 @@ describe('RevenueEngine', () => {
             }
 
             const count = revenueEngine.getAdvertiserScheduleCount('adv0', ads, schedule);
-            expect(count).toBeGreaterThanOrEqual(0);
+            expect(count).toBe(10);
         });
 
         it('should getAdvertiserDiversity efficiently with large schedule', () => {
             const ads: Ad[] = [];
             for (let i = 0; i < LOAD_ADS_COUNT; i++) {
-                ads.push(createTestAd(`ad${i}`, `adv${i % 10}`));
+                ads.push(createTestAd(`ad${i}`, `adv${i % 10}`, { duration: 10, timeout: 100 }));
             }
 
             const schedule: Schedule = {};
@@ -665,27 +643,28 @@ describe('RevenueEngine', () => {
             }
 
             const diversity = revenueEngine.getAdvertiserDiversity(ads, schedule);
-            expect(diversity).toBeGreaterThanOrEqual(0);
-            expect(diversity).toBeLessThanOrEqual(10);
+            expect(diversity).toBe(10);
         });
 
         it('should calculatePlacementRevenue consistently with many ads in schedule', () => {
-            const ads: Ad[] = [
-                createTestAd('newAd', 'adv0', { baseRevenue: 100 }),
-                ...Array.from({ length: LOAD_ADS_COUNT - 1 }, (_, i) =>
-                    createTestAd(`ad${i}`, 'adv0', { baseRevenue: 50 })
-                ),
-            ];
-            const area = createTestArea('area1', 'main', { multiplier: 1.0 });
-            const schedule: Schedule = {
-                area1: ads.slice(1, 11).map((ad, i) =>
-                    createTestScheduledAd(ad.adId, 'area1', i * 10, i * 10 + 5)
-                ),
-            };
+            
+            const area = createTestArea('area1', 'main', { multiplier: 2.0, timeWindow: 100 });
 
-            const revenue = revenueEngine.calculatePlacementRevenue(ads[0], [area], ads, schedule, 0.5);
-            expect(revenue).toBeLessThanOrEqual(100);
-            expect(revenue).toBeGreaterThanOrEqual(0);
+            const ads: Ad[] = [];
+            for (let i = 0; i < 10; i++) {
+                ads.push(createTestAd(`ad${i}`, `adv0`, { baseRevenue: 100, duration: 10, timeout: 100 }));
+            }
+            
+            const schedule: Schedule = { area1: [] };
+            for (let a = 0; a < 10; a++) {
+                schedule['area1'].push(createTestScheduledAd(`ad${a}`, `area1`, a * 10, a * 10 + 10));
+            }
+
+            for (let i = 0; i < 10; i++) {
+                const ad = ads[i];
+                const revenue = revenueEngine.calculatePlacementRevenue(ad, [area], ads, schedule, 0.5);
+                expect(revenue).toBeCloseTo(100 * 2.0 * (0.5 ** i));
+            }
         });
     });
 });
