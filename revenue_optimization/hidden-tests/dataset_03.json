@@ -1,0 +1,166 @@
+{
+  "name": "dataset_03_single_use_conflict",
+  "description": "A few very strong flexible ads are attractive in multiple areas but each ad may only be scheduled once globally. Strong solutions must choose the right area for each flexible ad and fill the remaining areas with the best area-specific alternatives.",
+  "edgeCaseTarget": [
+    "global single-use rule",
+    "best-area choice for flexible high-value ads",
+    "opportunity cost across areas",
+    "global packing over local greedy placement"
+  ],
+  "punishes": [
+    "algorithms that place a flexible ad in the first legal area they inspect",
+    "algorithms that choose the locally best placement without considering what that blocks elsewhere",
+    "algorithms that waste a top flexible ad in a medium area when a weaker area-specific replacement exists",
+    "algorithms that treat areas independently instead of globally"
+  ],
+  "rewards": [
+    "placing each flexible premium ad in its globally best area",
+    "using strong area-specific fallback ads in the remaining areas",
+    "recognizing that one flexible ad used in the wrong area creates large hidden loss elsewhere",
+    "balancing revenue, packing, and advertiser spread"
+  ],
+  "optimalStructure": "mostly one strong global structure with a few near-miss alternatives that lose noticeably on total revenue",
+  "decayRate": 0.5,
+  "areas": [
+    {
+      "areaId": "main_hall",
+      "location": "main",
+      "multiplier": 2.5,
+      "totalScreens": 4,
+      "timeWindow": 18
+    },
+    {
+      "areaId": "bar_zone",
+      "location": "bar",
+      "multiplier": 1.9,
+      "totalScreens": 3,
+      "timeWindow": 18
+    },
+    {
+      "areaId": "patio_lane",
+      "location": "patio",
+      "multiplier": 1.35,
+      "totalScreens": 2,
+      "timeWindow": 18
+    }
+  ],
+  "ads": [
+    {
+      "adId": "flex_alpha",
+      "advertiserId": "adv_flex_alpha",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 168,
+      "bannedLocations": []
+    },
+    {
+      "adId": "flex_beta",
+      "advertiserId": "adv_flex_beta",
+      "timeReceived": 9,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 160,
+      "bannedLocations": []
+    },
+    {
+      "adId": "main_backup_a",
+      "advertiserId": "adv_main_a",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 114,
+      "bannedLocations": ["bar", "patio"]
+    },
+    {
+      "adId": "main_backup_b",
+      "advertiserId": "adv_main_b",
+      "timeReceived": 9,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 108,
+      "bannedLocations": ["bar", "patio"]
+    },
+    {
+      "adId": "bar_anchor_a",
+      "advertiserId": "adv_bar_a",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 136,
+      "bannedLocations": ["main", "patio"]
+    },
+    {
+      "adId": "bar_anchor_b",
+      "advertiserId": "adv_bar_b",
+      "timeReceived": 9,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 129,
+      "bannedLocations": ["main", "patio"]
+    },
+    {
+      "adId": "patio_anchor_a",
+      "advertiserId": "adv_patio_a",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 118,
+      "bannedLocations": ["main", "bar"]
+    },
+    {
+      "adId": "patio_anchor_b",
+      "advertiserId": "adv_patio_b",
+      "timeReceived": 9,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 112,
+      "bannedLocations": ["main", "bar"]
+    },
+    {
+      "adId": "cross_bar_patio_a",
+      "advertiserId": "adv_cross_a",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 142,
+      "bannedLocations": ["main"]
+    },
+    {
+      "adId": "cross_bar_patio_b",
+      "advertiserId": "adv_cross_b",
+      "timeReceived": 9,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 134,
+      "bannedLocations": ["main"]
+    },
+    {
+      "adId": "main_decoy_full",
+      "advertiserId": "adv_decoy_main",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 18,
+      "baseRevenue": 210,
+      "bannedLocations": ["bar", "patio"]
+    },
+    {
+      "adId": "pair_decay_a",
+      "advertiserId": "adv_pair_decay",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 132,
+      "bannedLocations": []
+    },
+    {
+      "adId": "pair_decay_b",
+      "advertiserId": "adv_pair_decay",
+      "timeReceived": 9,
+      "timeout": 0,
+      "duration": 9,
+      "baseRevenue": 132,
+      "bannedLocations": []
+    }
+  ]
+}

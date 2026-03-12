@@ -1,0 +1,197 @@
+{
+  "name": "dataset_05_greedy_trap",
+  "description": "A greedy-trap dataset where one flashy long ad looks best immediately, but taking it blocks multiple medium and exact-fit ads that produce a much better global schedule.",
+  "edgeCaseTarget": [
+    "non-greedy planning",
+    "preserving critical slots",
+    "avoiding local maxima",
+    "exact-fit packing under timing pressure"
+  ],
+  "punishes": [
+    "algorithms that always pick the highest immediate raw revenue placement",
+    "algorithms that ignore future slot availability",
+    "algorithms that do not reason about exact-fit combinations",
+    "algorithms that waste premium early windows with long ads"
+  ],
+  "rewards": [
+    "planning around later exact-fit opportunities",
+    "saving premium slots for combinations with higher total value",
+    "global reasoning across areas instead of per-placement greediness",
+    "packing schedules tightly without blocking key ads"
+  ],
+  "optimalStructure": "one dominant global structure with several tempting but clearly worse greedy alternatives",
+  "decayRate": 0.5,
+  "areas": [
+    {
+      "areaId": "main_stage",
+      "location": "main",
+      "multiplier": 2.3,
+      "totalScreens": 4,
+      "timeWindow": 24
+    },
+    {
+      "areaId": "bar_lane",
+      "location": "bar",
+      "multiplier": 1.7,
+      "totalScreens": 3,
+      "timeWindow": 24
+    },
+    {
+      "areaId": "patio_loop",
+      "location": "patio",
+      "multiplier": 1.25,
+      "totalScreens": 2,
+      "timeWindow": 24
+    }
+  ],
+  "ads": [
+    {
+      "adId": "flash_main_long",
+      "advertiserId": "adv_flash",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 12,
+      "baseRevenue": 210,
+      "bannedLocations": ["bar", "patio"]
+    },
+    {
+      "adId": "main_exact_a",
+      "advertiserId": "adv_main_a",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 6,
+      "baseRevenue": 118,
+      "bannedLocations": ["bar", "patio"]
+    },
+    {
+      "adId": "main_exact_b",
+      "advertiserId": "adv_main_b",
+      "timeReceived": 6,
+      "timeout": 0,
+      "duration": 6,
+      "baseRevenue": 114,
+      "bannedLocations": ["bar", "patio"]
+    },
+    {
+      "adId": "main_exact_c",
+      "advertiserId": "adv_main_c",
+      "timeReceived": 12,
+      "timeout": 0,
+      "duration": 6,
+      "baseRevenue": 112,
+      "bannedLocations": ["bar", "patio"]
+    },
+    {
+      "adId": "main_exact_d",
+      "advertiserId": "adv_main_d",
+      "timeReceived": 18,
+      "timeout": 0,
+      "duration": 6,
+      "baseRevenue": 108,
+      "bannedLocations": ["bar", "patio"]
+    },
+
+    {
+      "adId": "bridge_main_mid",
+      "advertiserId": "adv_bridge",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 8,
+      "baseRevenue": 128,
+      "bannedLocations": ["bar", "patio"]
+    },
+    {
+      "adId": "bridge_main_late",
+      "advertiserId": "adv_bridge",
+      "timeReceived": 8,
+      "timeout": 0,
+      "duration": 8,
+      "baseRevenue": 126,
+      "bannedLocations": ["bar", "patio"]
+    },
+
+    {
+      "adId": "bar_anchor_long",
+      "advertiserId": "adv_bar_anchor",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 12,
+      "baseRevenue": 132,
+      "bannedLocations": ["main", "patio"]
+    },
+    {
+      "adId": "bar_slot_a",
+      "advertiserId": "adv_bar_a",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 6,
+      "baseRevenue": 92,
+      "bannedLocations": ["main", "patio"]
+    },
+    {
+      "adId": "bar_slot_b",
+      "advertiserId": "adv_bar_b",
+      "timeReceived": 6,
+      "timeout": 0,
+      "duration": 6,
+      "baseRevenue": 88,
+      "bannedLocations": ["main", "patio"]
+    },
+    {
+      "adId": "bar_slot_c",
+      "advertiserId": "adv_bar_c",
+      "timeReceived": 12,
+      "timeout": 0,
+      "duration": 6,
+      "baseRevenue": 90,
+      "bannedLocations": ["main", "patio"]
+    },
+    {
+      "adId": "bar_slot_d",
+      "advertiserId": "adv_bar_d",
+      "timeReceived": 18,
+      "timeout": 0,
+      "duration": 6,
+      "baseRevenue": 86,
+      "bannedLocations": ["main", "patio"]
+    },
+
+    {
+      "adId": "patio_guard_early",
+      "advertiserId": "adv_patio_guard",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 12,
+      "baseRevenue": 118,
+      "bannedLocations": ["main", "bar"]
+    },
+    {
+      "adId": "patio_guard_late",
+      "advertiserId": "adv_patio_guard",
+      "timeReceived": 12,
+      "timeout": 0,
+      "duration": 12,
+      "baseRevenue": 116,
+      "bannedLocations": ["main", "bar"]
+    },
+
+    {
+      "adId": "flex_precision_1",
+      "advertiserId": "adv_flex_1",
+      "timeReceived": 12,
+      "timeout": 0,
+      "duration": 6,
+      "baseRevenue": 101,
+      "bannedLocations": []
+    },
+    {
+      "adId": "flex_precision_2",
+      "advertiserId": "adv_flex_2",
+      "timeReceived": 18,
+      "timeout": 0,
+      "duration": 6,
+      "baseRevenue": 97,
+      "bannedLocations": []
+    }
+  ]
+}
