@@ -209,7 +209,7 @@ describe('RevenueEngine', () => {
             const area = createTestArea('area1', 'main', { multiplier: 1.5 });
             const ads: Ad[] = [ad];
             const schedule: Schedule = {
-                area1: [createTestScheduledAd('ad1', 'area1', 0, 5)]
+                area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
             };
 
             const revenue = revenueEngine.calculatePlacementRevenue(ad, [area], ads, schedule, 0.5);
@@ -404,11 +404,11 @@ describe('RevenueEngine', () => {
             const schedule: Schedule = {
                 area1: [
                     createTestScheduledAd('ad1', 'area1', 0, 5),
-                    createTestScheduledAd('ad2', 'area1', 10, 15),  
+                    createTestScheduledAd('ad2', 'area1', 10, 15),
                 ],
                 area2: [
                     createTestScheduledAd('ad3', 'area2', 0, 5),
-                    createTestScheduledAd('ad4', 'area2', 10, 15)
+                    createTestScheduledAd('ad4', 'area2', 10, 15),
                 ],
             };
 
@@ -425,6 +425,34 @@ describe('RevenueEngine', () => {
             };
 
             expect(revenueEngine.getAdvertiserDiversity(ads, schedule)).toBe(1);
+        });
+
+        it('should return number of unique advertisers in schedule when there are multiple areas', () => {
+            const ads: Ad[] = [
+                createTestAd('ad1', 'adv1', { timeout: 60 }),
+                createTestAd('ad2', 'adv1', { timeout: 60 }),
+                createTestAd('ad3', 'adv2', { timeout: 60 }),
+                createTestAd('ad4', 'adv2', { timeout: 60 }),
+                createTestAd('ad5', 'adv3', { timeout: 60 }),
+                createTestAd('ad6', 'adv3', { timeout: 60 }),
+            ];
+
+            const schedule: Schedule = {
+                area1: [
+                    createTestScheduledAd('ad1', 'area1', 0, 5),
+                    createTestScheduledAd('ad6', 'area1', 60, 65),
+                ],
+                area2: [
+                    createTestScheduledAd('ad2', 'area2', 0, 5),
+                    createTestScheduledAd('ad5', 'area2', 55, 60),
+                ],
+                area3: [
+                    createTestScheduledAd('ad3', 'area3', 0, 5),
+                    createTestScheduledAd('ad4', 'area3', 25, 30),
+                ],
+            };
+
+            expect(revenueEngine.getAdvertiserDiversity(ads, schedule)).toBe(3);
         });
     });
 
@@ -543,7 +571,7 @@ describe('RevenueEngine', () => {
             const scheduleA: Schedule = {
                 area1: [
                     createTestScheduledAd('ad1', 'area1', 0, 10),
-                    createTestScheduledAd('ad3', 'area1', 10, 20)
+                    createTestScheduledAd('ad3', 'area1', 10, 20),
                 ],
             };
             const scheduleB: Schedule = {
@@ -567,7 +595,7 @@ describe('RevenueEngine', () => {
             const scheduleA: Schedule = {
                 area1: [
                     createTestScheduledAd('ad1', 'area1', 0, 10),
-                    createTestScheduledAd('ad2', 'area1', 10, 20)
+                    createTestScheduledAd('ad2', 'area1', 10, 20),
                 ],
             };
             const scheduleB: Schedule = {
