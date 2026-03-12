@@ -609,7 +609,7 @@ describe('PlacementEngine', () => {
             const areaSchedule: ScheduledAd[] = [];
 
             for (let i = 0; i < LOAD_SIZE; i++) {
-                ads.push(createTestAd(`ad${i}`, 'adv1', { duration: 10 }));
+                ads.push(createTestAd(`ad${i}`, 'adv1', { duration: 10, timeout: 1000 }));
                 areaSchedule.push(createTestScheduledAd(`ad${i}`, 'area1', i * 10, i * 10 + 10));
             }
 
@@ -626,7 +626,7 @@ describe('PlacementEngine', () => {
                 schedule['area1'].push(createTestScheduledAd(`ad${i}`, 'area1', i * 10, i * 10 + 10));
             }
 
-            const ad = createTestAd('adNew', 'adv1', { duration: 20 });
+            const ad = createTestAd('adNew', 'adv1', { duration: 20, timeout: 1000 });
             expect(placementEngine.canScheduleAd(ad, area, schedule, 990)).toBe(false);
         });
     });
