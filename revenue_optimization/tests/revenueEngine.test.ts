@@ -1,7 +1,6 @@
 import { RevenueEngine } from '../src/revenueEngine';
 import { PlacementEngine } from '../src/placementEngine';
 
-// Types matching README data model (for test helpers)
 interface Ad {
     adId: string;
     advertiserId: string;
@@ -143,8 +142,8 @@ describe('RevenueEngine', () => {
 
         it('should count multiple ads from same advertiser in one area', () => {
             const ads: Ad[] = [
-                createTestAd('ad1', 'adv1'),
-                createTestAd('ad2', 'adv1'),
+                createTestAd('ad1', 'adv1', { timeout: 20 }),
+                createTestAd('ad2', 'adv1', { timeout: 20 }),
             ];
             const schedule: Schedule = {
                 area1: [
@@ -381,8 +380,8 @@ describe('RevenueEngine', () => {
 
         it('should return 1 when only one advertiser has scheduled ads', () => {
             const ads: Ad[] = [
-                createTestAd('ad1', 'adv1'),
-                createTestAd('ad2', 'adv1'),
+                createTestAd('ad1', 'adv1', { timeout: 20 }),
+                createTestAd('ad2', 'adv1', { timeout: 20 }),
             ];
             const schedule: Schedule = {
                 area1: [
@@ -396,10 +395,10 @@ describe('RevenueEngine', () => {
 
         it('should return number of unique advertisers in schedule', () => {
             const ads: Ad[] = [
-                createTestAd('ad1', 'adv1'),
-                createTestAd('ad2', 'adv2'),
-                createTestAd('ad3', 'adv3'),
-                createTestAd('ad4', 'adv1'),
+                createTestAd('ad1', 'adv1', { timeout: 20 }),
+                createTestAd('ad2', 'adv2', { timeout: 20 }),
+                createTestAd('ad3', 'adv3', { timeout: 20 }),
+                createTestAd('ad4', 'adv1', { timeout: 20 }),
             ];
             const schedule: Schedule = {
                 area1: [
@@ -565,9 +564,9 @@ describe('RevenueEngine', () => {
 
         it('should return negative when B has same revenue and unused time but more diversity', () => {
             const ads: Ad[] = [
-                createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
-                createTestAd('ad2', 'adv1', { baseRevenue: 100 }),
-                createTestAd('ad3', 'adv2', { baseRevenue: 100 }),
+                createTestAd('ad1', 'adv1', { baseRevenue: 100, duration: 10, timeout: 50 }),
+                createTestAd('ad2', 'adv1', { baseRevenue: 100, duration: 10, timeout: 50 }),
+                createTestAd('ad3', 'adv2', { baseRevenue: 100, duration: 10, timeout: 50 }),
             ];
 
             const scheduleA: Schedule = {

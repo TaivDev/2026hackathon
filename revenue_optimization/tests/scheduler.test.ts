@@ -21,8 +21,8 @@ describe('Scheduler', () => {
         adId,
         advertiserId,
         timeReceived: 0,
-        timeout: 10,
-        duration: 5,
+        timeout: 30,
+        duration: 10,
         baseRevenue: 100,
         bannedLocations: [],
         ...overrides,
@@ -141,12 +141,12 @@ describe('Scheduler', () => {
         it('should return false when the same ad is scheduled in two areas', () => {
             const areas = [
                 createTestArea('area1', 'main'),
-                createTestArea('area2', 'main'),
+                createTestArea('area2', 'bar'),
             ];
             const ads = [createTestAd('ad1', 'adv1')];
             const schedule: Schedule = {
                 area1: [createTestScheduledAd('ad1', 'area1', 0, 10)],
-                area2: [createTestScheduledAd('ad1', 'area2', 20, 30)],
+                area2: [createTestScheduledAd('ad1', 'area2', 10, 20)],
             };
 
             expect(scheduler.isValidSchedule(schedule, areas, ads)).toBe(false);
@@ -162,7 +162,7 @@ describe('Scheduler', () => {
             expect(scheduler.isValidSchedule(schedule, areas, ads)).toBe(false);
         });
 
-        it('should return false when a ScheduledAd.areaId does not match its bucket key', () => {
+        it('should return false when a ScheduledAd.areaId does not match its schedule key', () => {
             const areas = [createTestArea('area1', 'main')];
             const ads = [createTestAd('ad1', 'adv1')];
             const schedule: Schedule = {
@@ -263,7 +263,11 @@ describe('Scheduler', () => {
 
         it('should return true for an unsorted but otherwise valid area schedule', () => {
             const areas = [createTestArea('area1', 'main')];
-            const ads = [createTestAd('ad1', 'adv1'), createTestAd('ad2', 'adv1'), createTestAd('ad3', 'adv1')];
+            const ads = [
+                createTestAd('ad1', 'adv1', { duration: 10, timeout: 60 }),
+                createTestAd('ad2', 'adv1', { duration: 10, timeout: 60 }),
+                createTestAd('ad3', 'adv1', { duration: 10, timeout: 60 }),
+            ];
             const schedule: Schedule = {
                 area1: [
                     createTestScheduledAd('ad2', 'area1', 20, 30),
