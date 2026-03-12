@@ -47,6 +47,12 @@ describe('PlacementEngine', () => {
         endTime,
     });
 
+    describe('constructor', () => {
+        it('should create a new PlacementEngine instance', () => {
+            expect(placementEngine).toBeDefined();
+        });
+    });
+
     describe('isAdCompatibleWithArea', () => {
         it('should return true when area location is not banned', () => {
             const ad = createTestAd('ad1', 'adv1', { bannedLocations: ['bar', 'patio'] });

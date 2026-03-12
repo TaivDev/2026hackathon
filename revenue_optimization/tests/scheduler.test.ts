@@ -53,6 +53,16 @@ describe('Scheduler', () => {
         endTime,
     });
 
+    describe('constructor', () => {
+        it('should create a new Scheduler instance', () => {
+            expect(scheduler).toBeDefined();
+            expect(scheduler.placementEngine).toBeDefined();
+            expect(scheduler.placementEngine).toBeInstanceOf(PlacementEngine);
+            expect(scheduler.revenueEngine).toBeDefined();
+            expect(scheduler.revenueEngine).toBeInstanceOf(RevenueEngine);
+        });
+    });
+
     describe('getNextAvailableStartTime', () => {
         it('should return 0 for an empty schedule', () => {
             expect(scheduler.getNextAvailableStartTime([])).toBe(0);
