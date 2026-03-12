@@ -1,0 +1,212 @@
+{
+  "name": "dataset_01_tight_time_region",
+  "description": "Many ads compete for a narrow early start region. This dataset stresses timing windows, exact-start placements, and packing quality across three areas with different multipliers.",
+  "edgeCaseTarget": [
+    "availability window pressure",
+    "many ads competing in the same tight start-time region",
+    "short ads versus medium ads",
+    "exact-start ads",
+    "packing mistakes that waste later slots"
+  ],
+  "punishes": [
+    "greedy algorithms that always pick the highest immediate raw revenue first",
+    "algorithms that ignore exact-start opportunities",
+    "algorithms that do not reason about duration packing",
+    "algorithms that fill an area early and accidentally block better later combinations"
+  ],
+  "rewards": [
+    "careful packing across multiple areas",
+    "respecting narrow timing windows",
+    "using short ads to unlock stronger total schedules",
+    "balancing early pressure against later follow-up slots"
+  ],
+  "optimalStructure": "many competitive structures, but strong solutions should outperform weak greedy ones by preserving exact-start opportunities and packing more efficiently",
+  "decayRate": 0.5,
+  "areas": [
+    {
+      "areaId": "main_area",
+      "location": "main",
+      "multiplier": 2.1,
+      "totalScreens": 4,
+      "timeWindow": 14
+    },
+    {
+      "areaId": "bar_area",
+      "location": "bar",
+      "multiplier": 1.6,
+      "totalScreens": 3,
+      "timeWindow": 14
+    },
+    {
+      "areaId": "patio_area",
+      "location": "patio",
+      "multiplier": 1.25,
+      "totalScreens": 2,
+      "timeWindow": 14
+    }
+  ],
+  "ads": [
+    {
+      "adId": "brew_anchor",
+      "advertiserId": "adv_brewco",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 6,
+      "baseRevenue": 150,
+      "bannedLocations": []
+    },
+    {
+      "adId": "cider_flash",
+      "advertiserId": "adv_brewco",
+      "timeReceived": 1,
+      "timeout": 1,
+      "duration": 3,
+      "baseRevenue": 74,
+      "bannedLocations": []
+    },
+    {
+      "adId": "nacho_wave",
+      "advertiserId": "adv_snacks",
+      "timeReceived": 0,
+      "timeout": 2,
+      "duration": 4,
+      "baseRevenue": 112,
+      "bannedLocations": []
+    },
+    {
+      "adId": "taco_zip",
+      "advertiserId": "adv_snacks",
+      "timeReceived": 4,
+      "timeout": 0,
+      "duration": 2,
+      "baseRevenue": 59,
+      "bannedLocations": []
+    },
+    {
+      "adId": "soda_drop",
+      "advertiserId": "adv_soda",
+      "timeReceived": 1,
+      "timeout": 0,
+      "duration": 5,
+      "baseRevenue": 121,
+      "bannedLocations": []
+    },
+    {
+      "adId": "wing_rush",
+      "advertiserId": "adv_wings",
+      "timeReceived": 2,
+      "timeout": 0,
+      "duration": 4,
+      "baseRevenue": 118,
+      "bannedLocations": []
+    },
+    {
+      "adId": "patio_pop",
+      "advertiserId": "adv_garden",
+      "timeReceived": 3,
+      "timeout": 0,
+      "duration": 3,
+      "baseRevenue": 87,
+      "bannedLocations": ["main"]
+    },
+    {
+      "adId": "mainline_special",
+      "advertiserId": "adv_steak",
+      "timeReceived": 0,
+      "timeout": 0,
+      "duration": 5,
+      "baseRevenue": 129,
+      "bannedLocations": ["patio"]
+    },
+    {
+      "adId": "quick_cheers",
+      "advertiserId": "adv_shots",
+      "timeReceived": 5,
+      "timeout": 1,
+      "duration": 2,
+      "baseRevenue": 61,
+      "bannedLocations": []
+    },
+    {
+      "adId": "dessert_ping",
+      "advertiserId": "adv_sweets",
+      "timeReceived": 6,
+      "timeout": 0,
+      "duration": 2,
+      "baseRevenue": 63,
+      "bannedLocations": []
+    },
+    {
+      "adId": "late_hook",
+      "advertiserId": "adv_music",
+      "timeReceived": 8,
+      "timeout": 0,
+      "duration": 3,
+      "baseRevenue": 92,
+      "bannedLocations": []
+    },
+    {
+      "adId": "bar_closer",
+      "advertiserId": "adv_music",
+      "timeReceived": 11,
+      "timeout": 0,
+      "duration": 3,
+      "baseRevenue": 88,
+      "bannedLocations": []
+    },
+    {
+      "adId": "patio_closer",
+      "advertiserId": "adv_garden",
+      "timeReceived": 9,
+      "timeout": 0,
+      "duration": 2,
+      "baseRevenue": 67,
+      "bannedLocations": ["main"]
+    },
+    {
+      "adId": "small_fill",
+      "advertiserId": "adv_local",
+      "timeReceived": 10,
+      "timeout": 0,
+      "duration": 1,
+      "baseRevenue": 28,
+      "bannedLocations": []
+    },
+    {
+      "adId": "exact_slot",
+      "advertiserId": "adv_vendorx",
+      "timeReceived": 6,
+      "timeout": 0,
+      "duration": 4,
+      "baseRevenue": 96,
+      "bannedLocations": ["patio"]
+    },
+    {
+      "adId": "reserve_main",
+      "advertiserId": "adv_rare",
+      "timeReceived": 4,
+      "timeout": 0,
+      "duration": 5,
+      "baseRevenue": 110,
+      "bannedLocations": ["bar", "patio"]
+    },
+    {
+      "adId": "patio_snap",
+      "advertiserId": "adv_tonic",
+      "timeReceived": 0,
+      "timeout": 6,
+      "duration": 2,
+      "baseRevenue": 52,
+      "bannedLocations": ["main"]
+    },
+    {
+      "adId": "bar_exact",
+      "advertiserId": "adv_bites",
+      "timeReceived": 6,
+      "timeout": 0,
+      "duration": 3,
+      "baseRevenue": 83,
+      "bannedLocations": ["patio"]
+    }
+  ]
+}
