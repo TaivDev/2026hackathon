@@ -41,7 +41,6 @@ export class PlacementEngine {
     doesPlacementFitTimingConstraints(
         ad: Ad,
         area: Area,
-        areaSchedule: ScheduledAd[],
         startTime: number
     ): boolean {
         return false;

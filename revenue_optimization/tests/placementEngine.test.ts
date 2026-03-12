@@ -143,7 +143,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('area1', 'main', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitTimingConstraints(ad, area, [], 15)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 15)
             ).toBe(true);
         });
 
@@ -156,7 +156,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('area1', 'main', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitTimingConstraints(ad, area, [], 10)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 10)
             ).toBe(true);
         });
 
@@ -169,7 +169,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('area1', 'main', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitTimingConstraints(ad, area, [], 30)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 30)
             ).toBe(true);
         });
 
@@ -182,7 +182,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('area1', 'main', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitTimingConstraints(ad, area, [], 9)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 9)
             ).toBe(false);
         });
 
@@ -195,7 +195,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('area1', 'main', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitTimingConstraints(ad, area, [], 31)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 31)
             ).toBe(false);
         });
 
@@ -208,8 +208,21 @@ describe('PlacementEngine', () => {
             const area = createTestArea('area1', 'main', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitTimingConstraints(ad, area, [], 80)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 80)
             ).toBe(true);
+        });
+
+        it('should return false when ad starts at the area time window boundary', () => {
+            const ad = createTestAd('ad1', 'adv1', {
+                timeReceived: 0,
+                timeout: 100,
+                duration: 20,
+            });
+            const area = createTestArea('area1', 'main', { timeWindow: 50 });
+            
+            expect(
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 50)
+            ).toBe(false);
         });
 
         it('should return false when ad exceeds the area time window by 1', () => {
@@ -221,7 +234,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('area1', 'main', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitTimingConstraints(ad, area, [], 80)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, 80)
             ).toBe(false);
         });
 
@@ -234,7 +247,7 @@ describe('PlacementEngine', () => {
             const area = createTestArea('area1', 'main', { timeWindow: 100 });
 
             expect(
-                placementEngine.doesPlacementFitTimingConstraints(ad, area, [], -1)
+                placementEngine.doesPlacementFitTimingConstraints(ad, area, -1)
             ).toBe(false);
         });
     });

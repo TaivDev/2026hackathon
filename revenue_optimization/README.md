@@ -85,7 +85,7 @@ Handles ad placement validation, schedule checks, and time-window checks.
 |--------|-------------|
 | `isAdCompatibleWithArea(ad, area)` | Return `true` if the ad is allowed to be played in the area, otherwise `false`. Use exact string matching for banned locations. |
 | `getTotalScheduledTimeForArea(areaSchedule)` | Return the total scheduled time for all ads in one area. This should be the sum of each scheduled ad’s duration (`endTime - startTime`), not the full span from first start to last end. |
-| `doesPlacementFitTimingConstraints(ad, area, areaSchedule, startTime)` | Return `true` only if the ad can start at `startTime`, starts within its allowed availability window, and fully fits within the area’s time window. |
+| `doesPlacementFitTimingConstraints(ad, area, startTime)` | Return `true` only if the ad can start at `startTime`, starts within its allowed availability window, and fully fits within the area’s time window. |
 | `isAdAlreadyScheduled(adId, schedule)` | Return `true` if the ad has already been scheduled anywhere in the full schedule. |
 | `canScheduleAd(ad, area, schedule, startTime)` | Return `true` only if the ad is compatible with the area, not already scheduled anywhere, does not overlap an existing ad in that area, and fits within all required timing constraints. |
 | `isAreaScheduleValid(area, areaSchedule, ads)` | Return `true` if the area schedule is valid. Ads must not overlap, every scheduled ad must exist in the ads list, every scheduled ad must be allowed in that area’s location, and every scheduled ad must fit within the area’s time window. |
