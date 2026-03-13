@@ -1,8 +1,33 @@
 # Bar Screen Ad Scheduling
 
-A simulated ad scheduling system for screens across multiple areas in a venue, such as the main hall, bar, and patio. Your team is implementing test driven development and as such they have written tests to outline all of the required functionality. Your task is to implement the core classes and functions that validate ad placements, calculate revenue, compare schedules, and build an optimized ad schedule.
+A simulated ad scheduling system for screens across multiple areas in a venue — such as the main hall, bar, and patio. Your task is to implement the core scheduling logic: validating ad placements, calculating revenue, comparing schedules, and ultimately building an optimized ad schedule.
 
-**DO NOT modify any of the test files or any of the function signatures.** When evaluating we will be running tests to check for valid implementations, and your score on this section will be proportional to the amount of tests that pass relative to other teams.
+This project uses **test-driven development (TDD)**. The test suite is already written and defines all required behaviour. Your job is to make every test pass.
+
+> **DO NOT modify any test files or any function signatures.** Evaluation is based on automated test runs, and your score is proportional to the number of tests that pass relative to other teams.
+
+---
+
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [How the System Fits Together](#how-the-system-fits-together)
+- [Data Models](#data-models)
+- [What to Implement](#what-to-implement)
+  - [1. PlacementEngine](#1-placementengine-srcplacementenginets)
+  - [2. RevenueEngine](#2-revenueengine-srcrevenueenginets)
+  - [3. Scheduler](#3-scheduler-srcschedulerts)
+- [Scheduling Rules](#scheduling-rules)
+  - [Time Semantics](#time-semantics)
+  - [Revenue & Decay](#revenue--decay)
+  - [Decay Ordering](#decay-ordering)
+  - [Schedule Comparison](#schedule-comparison)
+- [Assumptions & Constraints](#assumptions--constraints)
+- [Test Coverage](#test-coverage)
+- [Project Structure](#project-structure)
+- [Tips](#tips)
+
+---
 
 ## Getting Started
 
@@ -24,85 +49,91 @@ npm test
 npm run test:coverage
 ```
 
-Tests are located in the `tests/` folder. Your goal is to make all tests pass by implementing the functionality in the `src/` folder.
+Tests live in the `tests/` folder. Your goal is to make all tests pass by implementing the functionality in the `src/` folder.
 
 ---
 
-## Your Challenge
+## How the System Fits Together
 
-You need to implement three classes. The method signatures and interfaces are already defined—you just need to fill in the logic.
+There are three classes to implement, each building on the last:
 
-## Data Model
+```
+PlacementEngine
+  └── validates whether ads can be placed in areas and checks scheduling constraints
 
-These are all the data models you will need:
+RevenueEngine (uses PlacementEngine)
+  └── calculates how much revenue each scheduled ad generates, accounting for advertiser decay
+
+Scheduler (uses both PlacementEngine and RevenueEngine)
+  └── validates full schedules and builds an optimized schedule across all areas
+```
+
+Think of it as a pipeline: **placement validity → revenue calculation → schedule optimization.**
+
+---
+
+## Data Models
+
+All data models are defined in `src/placementEngine.ts`. You will use these throughout all three classes.
 
 ```typescript
 interface Ad {
     adId: string;
     advertiserId: string;
-    timeReceived: number;
-    timeout: number;
-    duration: number;
-    baseRevenue: number;
-    bannedLocations: string[];
+    timeReceived: number;   // When the ad became available
+    timeout: number;        // How long the ad is available after timeReceived
+    duration: number;       // How many time units the ad runs for
+    baseRevenue: number;    // Revenue before multipliers/decay
+    bannedLocations: string[];  // Locations where this ad cannot be shown
 }
 
 interface Area {
     areaId: string;
     location: string;
-    multiplier: number;
+    multiplier: number;     // Revenue multiplier for this area
     totalScreens: number;
-    timeWindow: number;
+    timeWindow: number;     // Total schedulable time for this area (0 to timeWindow)
 }
 
 interface ScheduledAd {
     adId: string;
     areaId: string;
-    startTime: number;
-    endTime: number;
+    startTime: number;      // Inclusive
+    endTime: number;        // Exclusive
 }
 
 type Schedule = Record<string, ScheduledAd[]>;
+// Keys are areaIds. Each ScheduledAd.areaId must match the key it appears under.
 ```
 
-**Schedule structure:** The keys of a `Schedule` are area IDs (`areaId`). A valid schedule may only use keys that appear in the provided `areas` list. Each `ScheduledAd.areaId` must equal the key of the array it appears in.
+---
 
-**Time semantics:** `startTime` is **inclusive** and `endTime` is **exclusive**.
-
-- An ad with `startTime: 0` and `endTime: 10` plays during time units 0, 1, 2, …, 9 (10 units). It does **not** play during time unit 10.
-- If an ad **ends at time unit 10** (i.e. has `endTime: 10`), it plays up to but not including 10, so the next ad **can start at time unit 10**.
-- Duration in time units is `endTime - startTime`.
-- Two ads in the same area do not overlap if the first has `endTime: E` and the next has `startTime >= E`.
-- The area time window is from time `0` up to but not including `area.timeWindow` (i.e. valid start times are in `[0, area.timeWindow)` for the ad to fit).
+## What to Implement
 
 ### 1. PlacementEngine (`src/placementEngine.ts`)
 
-Handles ad placement validation, schedule checks, and time-window checks.
-
-**Methods to Implement:**
+Handles ad placement validation and time-window checks.
 
 | Method | Description |
 |--------|-------------|
-| `isAdCompatibleWithArea(ad, area)` | Return `true` if the ad is allowed to be played in the area, otherwise `false`. Use exact string matching for banned locations. |
-| `getTotalScheduledTimeForArea(areaSchedule)` | Return the total scheduled time for all ads in one area. This should be the sum of each scheduled ad’s duration (`endTime - startTime`), not the full span from first start to last end. |
-| `doesPlacementFitTimingConstraints(ad, area, startTime)` | Return `true` only if the ad can start at `startTime`, starts within its allowed availability window, and fully fits within the area’s time window. |
+| `isAdCompatibleWithArea(ad, area)` | Return `true` if the ad is allowed to be played in the area. Use exact string matching for banned locations. |
+| `getTotalScheduledTimeForArea(areaSchedule)` | Return the total scheduled duration across all ads in one area. This is the sum of `endTime - startTime` for each scheduled ad — not the span from first start to last end. |
+| `doesPlacementFitTimingConstraints(ad, area, startTime)` | Return `true` only if the ad can start at `startTime`, starts within its allowed availability window, and fully fits within the area's time window. |
 | `isAdAlreadyScheduled(adId, schedule)` | Return `true` if the ad has already been scheduled anywhere in the full schedule. |
-| `canScheduleAd(ad, area, schedule, startTime)` | Return `true` only if the ad is compatible with the area, not already scheduled anywhere, does not overlap an existing ad in that area, and fits within all required timing constraints. |
-| `isAreaScheduleValid(area, areaSchedule, ads)` | Return `true` if the area schedule is valid. Ads must not overlap, every scheduled ad must exist in the ads list, every scheduled ad must be allowed in that area’s location, and every scheduled ad must fit within the area’s time window. |
+| `canScheduleAd(ad, area, schedule, startTime)` | Return `true` only if the ad is compatible with the area, not already scheduled elsewhere, does not overlap an existing ad in that area, and fits all timing constraints. |
+| `isAreaScheduleValid(area, areaSchedule, ads)` | Return `true` if the area schedule is valid: no overlaps, all ads exist in the ads list, all ads are allowed in this location, and all ads fit within the area's time window. |
 
 ---
 
 ### 2. RevenueEngine (`src/revenueEngine.ts`)
 
-Handles advertiser-based scoring rules, diminishing returns, and schedule comparisons.
-
-**Methods to Implement:**
+Handles advertiser-based scoring and diminishing returns.
 
 | Method | Description |
 |--------|-------------|
-| `getAdvertiserScheduleCount(advertiserId, ads, schedule)` | Return how many scheduled ads belong to the given advertiser across the full schedule. Return `0` if the advertiser is not in the ads list or has no scheduled ads. |
-| `calculateDiminishedRevenue(baseRevenue, advertiserScheduledCount, decayRate)` | Return the reduced revenue after applying diminishing returns. Use the advertiser’s scheduled count to determine how many times decay should be applied. When `advertiserScheduledCount` is `0`, treat the placement as the first (k=1), so the multiplier is 1 and the result is full `baseRevenue`. |
-| `calculatePlacementRevenue(ad, areas, ads, schedule, decayRate)` | Return the final revenue for placing one ad in one area, including the area’s multiplier and advertiser decay. |
+| `getAdvertiserScheduleCount(advertiserId, ads, schedule)` | Return how many scheduled ads belong to the given advertiser across the full schedule. Return `0` if the advertiser has no scheduled ads. |
+| `calculateDiminishedRevenue(baseRevenue, advertiserScheduledCount, decayRate)` | Return the reduced revenue after applying diminishing returns. When `advertiserScheduledCount` is `0`, treat the placement as the first (k=1), so the multiplier is `1` and the result is the full `baseRevenue`. |
+| `calculatePlacementRevenue(ad, areas, ads, schedule, decayRate)` | Return the final revenue for placing one ad in one area, including the area multiplier and advertiser decay. |
 | `getAdvertiserDiversity(ads, schedule)` | Return the number of unique advertisers represented in the schedule. |
 | `getAreaRevenue(area, areas, fullSchedule, ads, decayRate)` | Return the total revenue generated by the given area using the full schedule, ad list, and decay rate. Revenue must account for the area’s multiplier and advertiser decay based on the full schedule, not just the target area. Return `0` when the given area's `areaId` is not a key in the schedule. |
 
@@ -110,71 +141,80 @@ Handles advertiser-based scoring rules, diminishing returns, and schedule compar
 
 ### 3. Scheduler (`src/scheduler.ts`)
 
-Builds and evaluates schedules across all areas.
-
-**Methods to Implement:**
+Validates and builds schedules across all areas.
 
 | Method | Description |
 |--------|-------------|
-| `getNextAvailableStartTime(areaSchedule)` | Return the earliest free start time in the given area schedule. If there is a gap between scheduled ads, return the start of the earliest gap. If the schedule is empty, return `0`. |
-| `isValidSchedule(schedule, areas, ads)` | Return `true` if the full schedule is valid across all areas. A valid schedule must not schedule the same ad more than once, must not contain unknown area keys, each scheduled ad’s `areaId` must match the area bucket it is inside, and every area schedule must satisfy all timing and placement rules. |
-| `compareSchedules(ads, areas, scheduleA, scheduleB, decayRate)` | Compare two valid schedules. Prefer higher total revenue. If tied, prefer less unused time. If still tied, prefer greater advertiser diversity. Return a positive number if `scheduleA` is better, a negative number if `scheduleB` is better, or `0` if they are equivalent. |
-| `buildSchedule(ads, areas, decayRate)` | Build and return a complete schedule across all areas while respecting all scheduling constraints. Your implementation should aim to maximize total revenue. |
+| `getNextAvailableStartTime(areaSchedule)` | Return the earliest free start time in the given area schedule. Return `0` if the schedule is empty. If there is a gap between ads, return the start of the earliest gap. |
+| `isValidSchedule(schedule, areas, ads)` | Return `true` if the full schedule is valid across all areas: no ad appears more than once, no unknown area keys, each `areaId` matches its bucket, and every area schedule satisfies all timing and placement rules. |
+| `compareSchedules(ads, areas, scheduleA, scheduleB, decayRate)` | Compare two valid schedules. Return a positive number if `scheduleA` is better, negative if `scheduleB` is better, or `0` if equivalent. See [Schedule Comparison](#schedule-comparison) for tie-breaking rules. |
+| `buildSchedule(ads, areas, decayRate)` | Build and return a complete, valid schedule across all areas that maximizes total revenue. |
 
 ---
 
 ## Scheduling Rules
 
-Your implementation must respect the following rules:
+### Time Semantics
 
-- Each ad may only appear once in your full schedule.
-- You are not required to schedule every ad.
-- An ad can only start between `timeReceived` and `timeReceived + timeout` (inclusive on both ends).
+- `startTime` is **inclusive**; `endTime` is **exclusive**.
+- An ad with `startTime: 0` and `endTime: 10` runs during time units 0–9 (10 units total). It does **not** run at time unit 10.
+- Duration = `endTime - startTime`.
+- Two ads in the same area do not overlap if the first has `endTime: E` and the next has `startTime >= E` (touching boundaries are valid).
+- An area's valid time range is `[0, area.timeWindow)`. An ad's `endTime` must be ≤ `area.timeWindow`.
+
+### Core Constraints
+
+- Each ad may only appear **once** in the entire schedule.
+- You are **not** required to schedule every ad.
+- An ad must start between `timeReceived` and `timeReceived + timeout` (inclusive on both ends).
 - Each ad runs for exactly `duration` time units once scheduled.
 - Only one ad may run in an area at any given time.
-- Ads may run simultaneously in different areas.
-- Ads cannot be placed in locations listed in their `bannedLocations` field.
-- Each area has its own fixed scheduling time window.
-- A valid schedule must not contain unknown area keys.
-- A scheduled ad’s `areaId` must match the schedule bucket it appears in.
+- Ads may run simultaneously in **different** areas.
+- Ads cannot be placed in a location listed in their `bannedLocations`.
+- A valid schedule must not contain unknown area keys, and each scheduled ad's `areaId` must match the bucket it appears in.
 
-### Revenue Rules
+### Revenue & Decay
 
-- The base placement revenue for an ad is:
+The base placement revenue for an ad is:
 
-```text
+```
 baseRevenue × area.multiplier
 ```
 
-- If multiple ads from the same advertiser are scheduled, later ads from that advertiser earn reduced revenue.
-- The first scheduled ad from an advertiser earns full revenue.
-- For the k-th scheduled ad from the same advertiser in the global decay ordering, apply a decay multiplier of:
+When multiple ads from the same advertiser are scheduled, later ads earn reduced revenue via a decay multiplier. For the k-th scheduled ad from the same advertiser:
 
-`decayRate^(k - 1)`
+```
+revenue multiplier = decayRate^(k - 1)
+```
 
-- When `decayRate` is `1`, there is no decay: use multiplier `1` for every scheduled ad (all earn full raw revenue).
-- When `decayRate` is `0`, only the first scheduled ad from each advertiser earns revenue; subsequent ads from the same advertiser get multiplier `0` (formula: `0^(k-1)` gives 1 for k=1, 0 for k≥2).
-- For example, if `decayRate = 0.5`, then the first ad gets full revenue, the second gets multiplied by `0.5`, and the third gets multiplied by `0.25`.
+**Examples:**
 
-### Decay Ordering Rule
+| `decayRate` | 1st ad | 2nd ad | 3rd ad |
+|-------------|--------|--------|--------|
+| `1.0`       | ×1     | ×1     | ×1     |
+| `0.5`       | ×1     | ×0.5   | ×0.25  |
+| `0.0`       | ×1     | ×0     | ×0     |
 
-When calculating advertiser decay, sort all scheduled ads from the same advertiser across all areas using this order:
+When `advertiserScheduledCount` is `0`, treat the placement as the first ad (k=1), so the multiplier is `1` and the full `baseRevenue` applies.
+
+### Decay Ordering
+
+When calculating decay for an advertiser's ads, sort them using this deterministic order:
 
 1. `startTime` ascending
-2. raw placement revenue ascending (`baseRevenue × area.multiplier`) — lower revenue first
-3. lexicographically smaller `adId`
+2. Raw placement revenue ascending (`baseRevenue × area.multiplier`) — lower revenue first
+3. `adId` lexicographically ascending
 
-This ordering must be deterministic.
+### Schedule Comparison
 
-### Schedule Comparison Rules
+**Unused time** for a schedule is the sum over all areas of `area.timeWindow` minus the total scheduled duration in that area.
 
-**Unused time** for a schedule is the sum over every area of `area.timeWindow` minus the total scheduled duration in that area (sum of `endTime - startTime` for that area's scheduled ads). Less unused time is better.
+Prefer the better schedule using this tie-breaking order:
 
-If two schedules have the same total revenue:
-
-1. prefer the schedule with less unused time across all areas
-2. if still tied, prefer the schedule with greater advertiser diversity
-3. if still tied, treat them as equivalent
+1. **Higher total revenue** is better
+2. If tied → prefer **less unused time** across all areas
+3. If still tied → prefer **greater advertiser diversity**
+4. If still tied → treat as equivalent (return `0`)
 
 ---
 
@@ -211,26 +251,24 @@ If two schedules have the same total revenue:
 
 The test suite includes:
 
-- **Unit tests** for each method
-- **Validation tests** for compatibility, scheduling rules, and time window checks
-- **Revenue tests** for advertiser counts, diminished revenue, diversity, and area revenue calculation
+- **Unit tests** for each method in all three classes
+- **Validation tests** for compatibility rules, scheduling constraints, and time window checks
+- **Revenue tests** for advertiser counts, diminishing returns, diversity, and area revenue
 - **Scheduler tests** for free-slot detection, schedule validity, and schedule comparison
-- **Load tests** with larger ad lists and schedules to ensure your implementation scales
+- **Load tests** with larger ad lists to ensure your implementation scales
 
-Run `npm test` to test out your implementation.
+Run `npm test` to check your progress at any time.
 
 ---
 
 ## Project Structure
 
-(The root folder may be named `revenue_optimization` or similar.)
-
 ```text
 revenue_optimization/
 ├── src/
-│   ├── placementEngine.ts   # Implement placement validation and area schedule checks
-│   ├── revenueEngine.ts     # Implement advertiser scoring and schedule comparison
-│   └── scheduler.ts         # Implement schedule validation, area revenue, and final scheduling
+│   ├── placementEngine.ts   # Placement validation and area schedule checks
+│   ├── revenueEngine.ts     # Advertiser scoring and schedule comparison
+│   └── scheduler.ts         # Schedule validation and final schedule builder
 ├── tests/
 │   ├── placementEngine.test.ts
 │   ├── revenueEngine.test.ts
@@ -240,12 +278,15 @@ revenue_optimization/
 └── package.json
 ```
 
+> The root folder may be named `revenue_optimization` or similar.
+
 ---
 
 ## Tips
 
-1. **Run tests frequently** with `npm test` to check your progress
-2. **Read the test file** if you’re unsure what a method should do
-3. **Don’t modify the interfaces or function signatures** — the tests expect specific signatures
-4. **Keep your logic deterministic** — tie-breaking and decay ordering matter
-
+1. **Implement in order** — `PlacementEngine` first, then `RevenueEngine`, then `Scheduler`. Each class depends on the one before it.
+2. **Run tests frequently** with `npm test` to catch regressions early.
+3. **Read the test files** if you're unsure what a method should return — they are the source of truth.
+4. **Don't modify interfaces or function signatures** — the tests expect exact signatures.
+5. **Keep all logic deterministic** — tie-breaking and decay ordering are tested explicitly.
+6. **Focus on `buildSchedule` quality** — it carries the most weight in scoring. A valid but suboptimal schedule scores less than a valid and revenue-maximizing one.
