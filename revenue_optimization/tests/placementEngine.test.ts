@@ -321,7 +321,7 @@ describe('PlacementEngine', () => {
             const ad = createTestAd('ad1', 'adv1', { timeout: 30 });
             const area2 = createTestArea('area2', 'bar');
             const schedule: Schedule = {
-                area1: [createTestScheduledAd('ad1', 'area1', 0, 5)],
+                area1: [createTestScheduledAd('ad1', 'area1', 0, 10)],
                 area2: [],
             };
 
@@ -429,7 +429,20 @@ describe('PlacementEngine', () => {
                 ],
             };
             
-            expect(placementEngine.canScheduleAd(ad, area, schedule, 25)).toBe(true);
+            expect(placementEngine.canScheduleAd(ad, area, schedule, 20)).toBe(true);
+        });
+
+        it('should return false when placement doe not fit between two existing ads in the same area', () => {
+            const ad = createTestAd('ad3', 'adv1');
+            const area = createTestArea('area1', 'main');
+            const schedule: Schedule = {
+                area1: [
+                    createTestScheduledAd('ad1', 'area1', 10, 20),
+                    createTestScheduledAd('ad2', 'area1', 28, 38),
+                ],
+            };
+
+            expect(placementEngine.canScheduleAd(ad, area, schedule, 20)).toBe(false);
         });
     });
 
@@ -490,7 +503,7 @@ describe('PlacementEngine', () => {
             const ads = [createTestAd('ad1', 'adv1'), createTestAd('ad2', 'adv1')];
             const areaSchedule = [
                 createTestScheduledAd('ad1', 'area1', 0, 10),
-                createTestScheduledAd('ad2', 'area1', 9, 20),
+                createTestScheduledAd('ad2', 'area1', 9, 19),
             ];
 
             expect(placementEngine.isAreaScheduleValid(area, areaSchedule, ads)).toBe(false);
