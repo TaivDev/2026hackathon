@@ -35,10 +35,10 @@ The helper/unit-test marks are awarded **by section**, not just by raw total.
 
 | Section | Public Tests | Marks |
 |---|---:|---:|
-| PlacementEngine | 54 | 10.23 |
-| RevenueEngine | 38 | 7.20 |
-| Scheduler | 40 | 7.58 |
-| **Total** | **132** | **25.00** |
+| PlacementEngine | 55 | 10.37 |
+| RevenueEngine | 45 | 8.49 |
+| Scheduler | 33 | 6.14 |
+| **Total** | **133** | **25.00** |
 
 ### How this is calculated
 
@@ -47,19 +47,19 @@ For each section, your mark is proportional to how many tests you pass in that s
 #### PlacementEngine
 
 ```text
-Placement Score = (Placement tests passed / 54) × 10.23
+Placement Score = (Placement tests passed / 55) × 10.37
 ```
 
 #### RevenueEngine
 
 ```text
-Revenue Score = (Revenue tests passed / 38) × 7.20
+Revenue Score = (Revenue tests passed / 45) × 8.49
 ```
 
 #### Scheduler
 
 ```text
-Scheduler Score = (Scheduler tests passed / 40) × 7.58
+Scheduler Score = (Scheduler tests passed / 33) × 6.14
 ```
 
 Then:
