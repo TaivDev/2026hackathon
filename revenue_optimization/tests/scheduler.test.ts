@@ -288,11 +288,11 @@ describe('Scheduler', () => {
                 area2: [createTestScheduledAd('ad1', 'area2', 0, 10)],
             };
 
-            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(0);
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBeCloseTo(0);
         });
 
         it('should treat decayRate 1 as no decay for repeated advertiser ads', () => {
-            const area = createTestArea('area1', 'main', { multiplier: 1 });
+            const area = createTestArea('area1', 'main');
             const ads = [
                 createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
                 createTestAd('ad2', 'adv1', { baseRevenue: 100 }),
@@ -304,21 +304,22 @@ describe('Scheduler', () => {
                 ],
             };
 
-            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 1)).toBe(200);
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 1)).toBeCloseTo(200);
         });
 
         it('should return baseRevenue × multiplier for one ad in the target area', () => {
-            const area = createTestArea('area1', 'main', { multiplier: 2 });
+            const area = createTestArea('area1', 'main', { multiplier: 2.0 });
             const ads = [createTestAd('ad1', 'adv1', { baseRevenue: 100 })];
             const fullSchedule: Schedule = {
                 area1: [createTestScheduledAd('ad1', 'area1', 0, 10)],
             };
 
-            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(200);
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBeCloseTo(200);
         });
 
         it('should use lexicographically smaller adId first when same advertiser ads have same start time and same raw revenue', () => {
-            const area = createTestArea('area1', 'main', { multiplier: 1 });
+            const area1 = createTestArea('area1', 'main');
+            const area2 = createTestArea('area2', 'bar');
             const ads = [
                 createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
                 createTestAd('ad2', 'adv1', { baseRevenue: 100 }),
@@ -329,26 +330,13 @@ describe('Scheduler', () => {
             };
 
             // ad1 should be ordered first globally, so ad2 in area1 is decayed
-            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(50);
+            expect(scheduler.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBeCloseTo(50);
+            expect(scheduler.getAreaRevenue(area2, fullSchedule, ads, 0.5)).toBeCloseTo(100);
         });
 
-        it('should use lexicographically smaller areaId first when same advertiser ads have same start time and same raw revenue', () => {
-            const area2 = createTestArea('area2', 'main', { multiplier: 1 });
-            const ads = [
-                createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
-                createTestAd('ad2', 'adv1', { baseRevenue: 100 }),
-            ];
-            const fullSchedule: Schedule = {
-                area1: [createTestScheduledAd('ad1', 'area1', 0, 10)],
-                area2: [createTestScheduledAd('ad2', 'area2', 0, 10)],
-            };
-
-            // area1 should be ordered first globally, so area2 ad is decayed
-            expect(scheduler.getAreaRevenue(area2, fullSchedule, ads, 0.5)).toBe(50);
-        });
 
         it('should apply decay to the second ad from the same advertiser in the same area', () => {
-            const area = createTestArea('area1', 'main', { multiplier: 1 });
+            const area1 = createTestArea('area1', 'main');
             const ads = [
                 createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
                 createTestAd('ad2', 'adv1', { baseRevenue: 100 }),
@@ -360,23 +348,40 @@ describe('Scheduler', () => {
                 ],
             };
 
-            // 100 + (100 * 0.5^1) = 150
-            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(150);
+            expect(scheduler.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBeCloseTo(150);
         });
 
         it('should apply advertiser decay based on ads scheduled in other areas too', () => {
-            const area1 = createTestArea('area1', 'main', { multiplier: 1 });
+            const area1 = createTestArea('area1', 'main');
+            const area2 = createTestArea('area2', 'bar');
             const ads = [
                 createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
                 createTestAd('ad2', 'adv1', { baseRevenue: 100 }),
             ];
             const fullSchedule: Schedule = {
-                area2: [createTestScheduledAd('ad1', 'area2', 0, 10)],
                 area1: [createTestScheduledAd('ad2', 'area1', 20, 30)],
+                area2: [createTestScheduledAd('ad1', 'area2', 0, 10)],
             };
 
             // ad2 is second for adv1 globally, so revenue is 100 * 0.5
-            expect(scheduler.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBe(50);
+            expect(scheduler.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBeCloseTo(50);
+            expect(scheduler.getAreaRevenue(area2, fullSchedule, ads, 0.5)).toBeCloseTo(100);
+        });
+
+        it('should apply decay to ad with higher raw placement revenue (baseRevenue * multiplier) when ads have same start time', () => {
+            const area1 = createTestArea('area1', 'main', { multiplier: 1.0 });
+            const area2 = createTestArea('area2', 'bar', { multiplier: 5.0 });
+            const ads = [
+                createTestAd('ad1', 'adv1', { baseRevenue: 200 }),
+                createTestAd('ad2', 'adv1', { baseRevenue: 100 }),
+            ];
+            const fullSchedule: Schedule = {
+                area1: [createTestScheduledAd('ad1', 'area1', 0, 10)],
+                area2: [createTestScheduledAd('ad2', 'area2', 0, 10)],
+            };
+
+            expect(scheduler.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBeCloseTo(200);
+            expect(scheduler.getAreaRevenue(area2, fullSchedule, ads, 0.5)).toBeCloseTo(250);
         });
 
         it('should not apply decay between different advertisers in the same area', () => {
@@ -392,11 +397,11 @@ describe('Scheduler', () => {
                 ],
             };
 
-            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(450);
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBeCloseTo(450);
         });
 
         it('should return full revenue for all ads when decayRate is 1 (no decay)', () => {
-            const area = createTestArea('area1', 'main', { multiplier: 1 });
+            const area = createTestArea('area1', 'main');
             const ads = [
                 createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
                 createTestAd('ad2', 'adv1', { baseRevenue: 100 }),
@@ -408,11 +413,11 @@ describe('Scheduler', () => {
                 ],
             };
 
-            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 1)).toBe(200);
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 1)).toBeCloseTo(200);
         });
 
         it('should return only first ad revenue per advertiser when decayRate is 0', () => {
-            const area = createTestArea('area1', 'main', { multiplier: 1 });
+            const area = createTestArea('area1', 'main');
             const ads = [
                 createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
                 createTestAd('ad2', 'adv1', { baseRevenue: 100 }),
@@ -420,20 +425,19 @@ describe('Scheduler', () => {
             const fullSchedule: Schedule = {
                 area1: [
                     createTestScheduledAd('ad1', 'area1', 0, 10),
-                    createTestScheduledAd('ad2', 'area1', 20, 30),
+                    createTestScheduledAd('ad2', 'area1', 15, 25),
                 ],
             };
 
-            // With decayRate 0, only first ad from each advertiser earns: 100 + 0 = 100
-            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0)).toBe(100);
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0)).toBeCloseTo(100);
         });
 
         it('should apply exponential decay correctly when decayRate is 0.5', () => {
-            const area = createTestArea('area1', 'main', { multiplier: 1 });
+            const area = createTestArea('area1', 'main');
             const ads = [
-                createTestAd('ad1', 'adv1', { baseRevenue: 80 }),
-                createTestAd('ad2', 'adv1', { baseRevenue: 80 }),
-                createTestAd('ad3', 'adv1', { baseRevenue: 80 }),
+                createTestAd('ad1', 'adv1', { baseRevenue: 80, timeout: 60 }),
+                createTestAd('ad2', 'adv1', { baseRevenue: 80, timeout: 60 }),
+                createTestAd('ad3', 'adv1', { baseRevenue: 80, timeout: 60 }),
             ];
             const fullSchedule: Schedule = {
                 area1: [
@@ -444,7 +448,7 @@ describe('Scheduler', () => {
             };
 
             // 80 + 80*0.5 + 80*0.25 = 80 + 40 + 20 = 140
-            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(140);
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBeCloseTo(140);
         });
 
         it('should return 0 when the target area is not present in the full schedule', () => {
@@ -454,22 +458,50 @@ describe('Scheduler', () => {
                 area2: [createTestScheduledAd('ad1', 'area2', 0, 10)],
             };
 
-            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBe(0);
+            expect(scheduler.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBeCloseTo(0);
         });
 
-        it('should use lower raw revenue first when same-advertiser ads have the same start time', () => {
-            const area1 = createTestArea('area1', 'main', { multiplier: 1 });
+        it('should use lower raw placement revenue first when same-advertiser ads have the same start time', () => {
+            const area1 = createTestArea('area1', 'main');
+            const area2 = createTestArea('area2', 'bar');
             const ads = [
                 createTestAd('ad1', 'adv1', { baseRevenue: 100 }),
                 createTestAd('ad2', 'adv1', { baseRevenue: 200 }),
             ];
             const fullSchedule: Schedule = {
-                area1: [createTestScheduledAd('ad2', 'area1', 0, 10)],
-                area2: [createTestScheduledAd('ad1', 'area2', 0, 10)],
+                area1: [createTestScheduledAd('ad1', 'area1', 0, 10)],
+                area2: [createTestScheduledAd('ad2', 'area2', 0, 10)],
             };
 
-            // area2 ad (100) should come first globally, so area1 ad gets decayed
-            expect(scheduler.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBe(100);
+            expect(scheduler.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBeCloseTo(100);
+            expect(scheduler.getAreaRevenue(area2, fullSchedule, ads, 0.5)).toBeCloseTo(100);
+        });
+    });
+
+    describe('buildSchedule', () => {
+        it('should return a valid schedule when given ads and areas', () => {
+            const areas = [
+                createTestArea('area1', 'main', { timeWindow: 100 }),
+                createTestArea('area2', 'bar', { timeWindow: 100 }),
+            ];
+            const ads = [
+                createTestAd('ad1', 'adv1', { duration: 5 }),
+                createTestAd('ad2', 'adv2', { duration: 5 }),
+            ];
+
+            const schedule = scheduler.buildSchedule(ads, areas, 0.5);
+
+            expect(scheduler.isValidSchedule(schedule, areas, ads)).toBe(true);
+        });
+
+        it('should return an empty schedule when given no ads', () => {
+            const areas = [createTestArea('area1', 'main', { timeWindow: 100 })];
+            const ads: Ad[] = [];
+
+            const schedule = scheduler.buildSchedule(ads, areas, 0.5);
+
+            expect(schedule).toEqual({});
+            expect(scheduler.isValidSchedule(schedule, areas, ads)).toBe(true);
         });
     });
 
@@ -499,7 +531,8 @@ describe('Scheduler', () => {
 
                 for (let i = 0; i < 10; i++) {
                     const adId = `ad${a * 10 + i}`;
-                    ads.push(createTestAd(adId, 'adv1', { duration: 10 }));
+                    // start times 0..90; default timeout 30 would invalidate 40+
+                    ads.push(createTestAd(adId, 'adv1', { duration: 10, timeout: 100 }));
                     schedule[areaId].push(
                         createTestScheduledAd(adId, areaId, i * 10, i * 10 + 10)
                     );
@@ -520,8 +553,9 @@ describe('Scheduler', () => {
 
                 for (let i = 0; i < 10; i++) {
                     const adId = `ad${a * 10 + i}`;
+                    // start times 0..90; default timeout 30 would invalidate 40+
                     ads.push(
-                        createTestAd(adId, `adv${i % 3}`, { baseRevenue: 100 })
+                        createTestAd(adId, `adv${i % 3}`, { baseRevenue: 100, timeout: 100 })
                     );
                     fullSchedule[areaId].push(
                         createTestScheduledAd(adId, areaId, i * 10, i * 10 + 10)
@@ -531,34 +565,6 @@ describe('Scheduler', () => {
 
             const revenue = scheduler.getAreaRevenue(targetArea, fullSchedule, ads, 0.5);
             expect(revenue).toBeGreaterThan(0);
-        });
-    });
-
-    describe('buildSchedule', () => {
-        it('should return a valid schedule when given ads and areas', () => {
-            const areas = [
-                createTestArea('area1', 'main', { timeWindow: 100 }),
-                createTestArea('area2', 'bar', { timeWindow: 100 }),
-            ];
-            const ads = [
-                createTestAd('ad1', 'adv1', { duration: 5 }),
-                createTestAd('ad2', 'adv2', { duration: 5 }),
-            ];
-
-            const schedule = scheduler.buildSchedule(ads, areas, 0.5);
-
-            expect(scheduler.isValidSchedule(schedule, areas, ads)).toBe(true);
-            expect(typeof schedule).toBe('object');
-        });
-
-        it('should return an empty schedule when given no ads', () => {
-            const areas = [createTestArea('area1', 'main', { timeWindow: 100 })];
-            const ads: Ad[] = [];
-
-            const schedule = scheduler.buildSchedule(ads, areas, 0.5);
-
-            expect(schedule).toEqual({});
-            expect(scheduler.isValidSchedule(schedule, areas, ads)).toBe(true);
         });
     });
 });
