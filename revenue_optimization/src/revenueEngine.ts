@@ -39,7 +39,7 @@ export class RevenueEngine {
 
     getAreaRevenue(
         area: Area,
-        areas: Area[],
+        areasArray: Area[],
         fullSchedule: Schedule,
         ads: Ad[],
         decayRate: number
