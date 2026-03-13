@@ -463,7 +463,7 @@ describe('RevenueEngine', () => {
                 area2: [createTestScheduledAd('ad1', 'area2', 0, 10)],
             };
 
-            expect(revenueEngine.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBeCloseTo(0);
+            expect(revenueEngine.getAreaRevenue(area, [area], fullSchedule, ads, 0.5)).toBeCloseTo(0);
         });
 
         it('should treat decayRate 1 as no decay for repeated advertiser ads', () => {
@@ -479,7 +479,7 @@ describe('RevenueEngine', () => {
                 ],
             };
 
-            expect(revenueEngine.getAreaRevenue(area, fullSchedule, ads, 1)).toBeCloseTo(200);
+            expect(revenueEngine.getAreaRevenue(area, [area], fullSchedule, ads, 1)).toBeCloseTo(200);
         });
 
         it('should return baseRevenue × multiplier for one ad in the target area', () => {
@@ -489,7 +489,7 @@ describe('RevenueEngine', () => {
                 area1: [createTestScheduledAd('ad1', 'area1', 0, 10)],
             };
 
-            expect(revenueEngine.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBeCloseTo(200);
+            expect(revenueEngine.getAreaRevenue(area, [area], fullSchedule, ads, 0.5)).toBeCloseTo(200);
         });
 
         it('should use lexicographically smaller adId first when same advertiser ads have same start time and same raw revenue', () => {
@@ -505,8 +505,8 @@ describe('RevenueEngine', () => {
             };
 
             // ad1 should be ordered first globally, so ad2 in area1 is decayed
-            expect(revenueEngine.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBeCloseTo(50);
-            expect(revenueEngine.getAreaRevenue(area2, fullSchedule, ads, 0.5)).toBeCloseTo(100);
+            expect(revenueEngine.getAreaRevenue(area1, [area1, area2], fullSchedule, ads, 0.5)).toBeCloseTo(50);
+            expect(revenueEngine.getAreaRevenue(area2, [area1, area2], fullSchedule, ads, 0.5)).toBeCloseTo(100);
         });
 
 
@@ -523,7 +523,7 @@ describe('RevenueEngine', () => {
                 ],
             };
 
-            expect(revenueEngine.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBeCloseTo(150);
+            expect(revenueEngine.getAreaRevenue(area1, [area1], fullSchedule, ads, 0.5)).toBeCloseTo(150);
         });
 
         it('should apply advertiser decay based on ads scheduled in other areas too', () => {
@@ -539,8 +539,8 @@ describe('RevenueEngine', () => {
             };
 
             // ad2 is second for adv1 globally, so revenue is 100 * 0.5
-            expect(revenueEngine.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBeCloseTo(50);
-            expect(revenueEngine.getAreaRevenue(area2, fullSchedule, ads, 0.5)).toBeCloseTo(100);
+            expect(revenueEngine.getAreaRevenue(area1, [area1, area2], fullSchedule, ads, 0.5)).toBeCloseTo(50);
+            expect(revenueEngine.getAreaRevenue(area2, [area1, area2], fullSchedule, ads, 0.5)).toBeCloseTo(100);
         });
 
         it('should apply decay to ad with higher raw placement revenue (baseRevenue * multiplier) when ads have same start time', () => {
@@ -555,8 +555,8 @@ describe('RevenueEngine', () => {
                 area2: [createTestScheduledAd('ad2', 'area2', 0, 10)],
             };
 
-            expect(revenueEngine.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBeCloseTo(200);
-            expect(revenueEngine.getAreaRevenue(area2, fullSchedule, ads, 0.5)).toBeCloseTo(250);
+            expect(revenueEngine.getAreaRevenue(area1, [area1, area2], fullSchedule, ads, 0.5)).toBeCloseTo(200);
+            expect(revenueEngine.getAreaRevenue(area2, [area1, area2], fullSchedule, ads, 0.5)).toBeCloseTo(250);
         });
 
         it('should not apply decay between different advertisers in the same area', () => {
@@ -572,7 +572,7 @@ describe('RevenueEngine', () => {
                 ],
             };
 
-            expect(revenueEngine.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBeCloseTo(450);
+            expect(revenueEngine.getAreaRevenue(area, [area], fullSchedule, ads, 0.5)).toBeCloseTo(450);
         });
 
         it('should return full revenue for all ads when decayRate is 1 (no decay)', () => {
@@ -588,7 +588,7 @@ describe('RevenueEngine', () => {
                 ],
             };
 
-            expect(revenueEngine.getAreaRevenue(area, fullSchedule, ads, 1)).toBeCloseTo(200);
+            expect(revenueEngine.getAreaRevenue(area, [area], fullSchedule, ads, 1)).toBeCloseTo(200);
         });
 
         it('should return only first ad revenue per advertiser when decayRate is 0', () => {
@@ -604,7 +604,7 @@ describe('RevenueEngine', () => {
                 ],
             };
 
-            expect(revenueEngine.getAreaRevenue(area, fullSchedule, ads, 0)).toBeCloseTo(100);
+            expect(revenueEngine.getAreaRevenue(area, [area], fullSchedule, ads, 0)).toBeCloseTo(100);
         });
 
         it('should apply exponential decay correctly when decayRate is 0.5', () => {
@@ -623,7 +623,7 @@ describe('RevenueEngine', () => {
             };
 
             // 80 + 80*0.5 + 80*0.25 = 80 + 40 + 20 = 140
-            expect(revenueEngine.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBeCloseTo(140);
+            expect(revenueEngine.getAreaRevenue(area, [area], fullSchedule, ads, 0.5)).toBeCloseTo(140);
         });
 
         it('should return 0 when the target area is not present in the full schedule', () => {
@@ -633,7 +633,7 @@ describe('RevenueEngine', () => {
                 area2: [createTestScheduledAd('ad1', 'area2', 0, 10)],
             };
 
-            expect(revenueEngine.getAreaRevenue(area, fullSchedule, ads, 0.5)).toBeCloseTo(0);
+            expect(revenueEngine.getAreaRevenue(area, [area], fullSchedule, ads, 0.5)).toBeCloseTo(0);
         });
 
         it('should use lower raw placement revenue first when same-advertiser ads have the same start time', () => {
@@ -648,8 +648,8 @@ describe('RevenueEngine', () => {
                 area2: [createTestScheduledAd('ad2', 'area2', 0, 10)],
             };
 
-            expect(revenueEngine.getAreaRevenue(area1, fullSchedule, ads, 0.5)).toBeCloseTo(100);
-            expect(revenueEngine.getAreaRevenue(area2, fullSchedule, ads, 0.5)).toBeCloseTo(100);
+            expect(revenueEngine.getAreaRevenue(area1, [area1, area2], fullSchedule, ads, 0.5)).toBeCloseTo(100);
+            expect(revenueEngine.getAreaRevenue(area2, [area1, area2], fullSchedule, ads, 0.5)).toBeCloseTo(100);
         });
     });
 
@@ -745,7 +745,7 @@ describe('RevenueEngine', () => {
             }
         }
 
-        const revenue = revenueEngine.getAreaRevenue(targetArea, fullSchedule, ads, 0.5);
+        const revenue = revenueEngine.getAreaRevenue(targetArea, [targetArea], fullSchedule, ads, 0.5);
         expect(revenue).toBeGreaterThan(0);
     });
 });
