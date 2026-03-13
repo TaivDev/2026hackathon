@@ -35,9 +35,9 @@ The helper/unit-test marks are awarded **by section**, not just by raw total.
 
 | Section | Public Tests | Marks |
 |---|---:|---:|
-| PlacementEngine | 54 | 10.31 |
-| RevenueEngine | 38 | 7.25 |
-| Scheduler | 40 | 7.63 |
+| PlacementEngine | 54 | 10.23 |
+| RevenueEngine | 38 | 7.20 |
+| Scheduler | 40 | 7.58 |
 | **Total** | **132** | **25.00** |
 
 ### How this is calculated
@@ -47,19 +47,19 @@ For each section, your mark is proportional to how many tests you pass in that s
 #### PlacementEngine
 
 ```text
-Placement Score = (Placement tests passed / 54) × 10.31
+Placement Score = (Placement tests passed / 54) × 10.23
 ```
 
 #### RevenueEngine
 
 ```text
-Revenue Score = (Revenue tests passed / 38) × 7.25
+Revenue Score = (Revenue tests passed / 38) × 7.20
 ```
 
 #### Scheduler
 
 ```text
-Scheduler Score = (Scheduler tests passed / 40) × 7.63
+Scheduler Score = (Scheduler tests passed / 40) × 7.58
 ```
 
 Then:
@@ -108,9 +108,9 @@ Your implementation of `buildSchedule(ads, areas, decayRate)` will also be run o
 
 These datasets are designed to test the actual quality of your scheduling strategy, not just correctness on small examples.
 
-- Number of hidden datasets: **8**
+- Number of hidden datasets: **9**
 - Total marks for this part: **40**
-- Each dataset is worth **5 marks**
+- Each dataset is worth **40 / 9 ≈ 4.44 marks**
 
 ### How teams are ranked on each dataset
 
@@ -126,7 +126,7 @@ A schedule must still be valid. Invalid schedules may receive no credit for that
 
 ### How dataset marks are assigned
 
-Each dataset is marked out of **5** based on your rank relative to the other teams.
+Each dataset is marked out of **40 / 9 ≈ 4.44** based on your rank relative to the other teams.
 
 If there are `N` teams, and your team finishes at rank `r` on that dataset:
 
@@ -136,12 +136,12 @@ If there are `N` teams, and your team finishes at rank `r` on that dataset:
 then the score for that dataset is:
 
 ```text
-Dataset Score = ((N - r) / (N - 1)) × 5
+Dataset Score = ((N - r) / (N - 1)) × (40 / 9)
 ```
 
 This means:
 
-- the top team gets the full **5 marks**
+- the top team gets the full **40 / 9 ≈ 4.44 marks**
 - the bottom team gets **0 marks**
 - teams in between get proportionally scaled marks
 
@@ -150,7 +150,7 @@ If teams are tied after applying all ranking rules, they will receive the same s
 ### Total dataset score
 
 ```text
-Dataset Performance Score = sum of all 8 dataset scores
+Dataset Performance Score = sum of all 9 dataset scores
 ```
 
 Maximum = **40 marks**
