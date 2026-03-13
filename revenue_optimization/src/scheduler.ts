@@ -22,10 +22,11 @@ export class Scheduler {
         return false;
     }
 
-    getAreaRevenue(
-        area: Area,
-        fullSchedule: Schedule,
+    compareSchedules(
         ads: Ad[],
+        areas: Area[],
+        scheduleA: Schedule,
+        scheduleB: Schedule,
         decayRate: number
     ): number {
         return 0;

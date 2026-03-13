@@ -37,11 +37,10 @@ export class RevenueEngine {
         return 0;
     }
 
-    compareSchedules(
+    getAreaRevenue(
+        area: Area,
+        fullSchedule: Schedule,
         ads: Ad[],
-        areas: Area[],
-        scheduleA: Schedule,
-        scheduleB: Schedule,
         decayRate: number
     ): number {
         return 0;
