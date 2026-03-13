@@ -4,7 +4,8 @@
   "description": "Hackathon Challenge: Technician Dispatch Optimization",
   "scripts": {
     "test": "jest --verbose",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:load": "jest --config jest.load.config.js --verbose"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",

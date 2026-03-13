@@ -269,32 +269,4 @@ describe('DayPlanner — planDay', () => {
         const full  = planner.planDay({ ...BASE_TECH, workingMinutes: 480 }, boxes);
         expect(full.boxesFixed).toBeGreaterThanOrEqual(short.boxesFixed);
     });
-
-    // ── Load tests ──
-
-    it('load — 30 boxes: all invariants hold', () => {
-        const boxes = Array.from({ length: 30 }, (_, i) => ({
-            id: `b${i}`, name: `Box ${i}`,
-            location: { latitude: Math.sin(i) * 2, longitude: Math.cos(i) * 2 },
-            fixTimeMinutes: 20 + (i % 5) * 30,
-        }));
-        const r   = planner.planDay(BASE_TECH, boxes);
-        const all = [...r.plannedRoute, ...r.skippedBoxIds].sort();
-        expect(r.totalTimeUsedMinutes).toBeLessThanOrEqual(480 + 0.01);
-        expect(r.boxesFixed).toBe(r.plannedRoute.length);
-        expect(all).toEqual(boxes.map(b => b.id).sort());
-    });
-
-    it('load — 1000 boxes: all invariants hold', () => {
-        const boxes = Array.from({ length: 1000 }, (_, i) => ({
-            id: `b${i}`, name: `Box ${i}`,
-            location: { latitude: Math.sin(i) * 2, longitude: Math.cos(i) * 2 },
-            fixTimeMinutes: 20 + (i % 5) * 1000,
-        }));
-        const r   = planner.planDay(BASE_TECH, boxes);
-        const all = [...r.plannedRoute, ...r.skippedBoxIds].sort();
-        expect(r.totalTimeUsedMinutes).toBeLessThanOrEqual(480 + 0.01);
-        expect(r.boxesFixed).toBe(r.plannedRoute.length);
-        expect(all).toEqual(boxes.map(b => b.id).sort());
-    });
 });

@@ -10,6 +10,7 @@ A route-planning and scheduling system for field technicians repairing broken bo
 npm install
 npm test
 npm run test:coverage   # optional — shows which lines your code covers
+npm run test:load       # to run the load tests
 ```
 
 Tests live in `tests/`. Your implementations go in `src/`. **Do not modify test files or method signatures.**
@@ -60,7 +61,7 @@ A technician starts at a known GPS location and must visit every broken box exac
 
 `calculateRouteDistance`: Walk `routeIds` in order. Start at `technician.startLocation`, add `haversineDistance` for each leg. Return the running total. 
 
-`findShortestRoute`: Nearest-neighbour greedy type algorithm?
+`findShortestRoute`: Nearest-neighbour greedy type algorithm? On the load tests, your implementation is expected to complete within **≈3 seconds**; extremely slow (e.g. fully brute-force) solutions may not finish in time.
 
 ---
 
@@ -97,7 +98,7 @@ A "nearest-first" strategy picks CLOSE and leaves the technician stuck. Your alg
 
 `calculateRouteDuration`: Same pattern as Challenge 1 but accumulate `travelTimeMinutes + fixTimeMinutes` per box.
 
-`planDay`: Similar greedy approach from problem 1 could work!
+`planDay`: Similar greedy approach from problem 1 could work! On the load tests (up to 1000 boxes), your implementation is expected to return a plan within **≈3 seconds**; favour heuristics over exhaustive search.
 
 ---
 
@@ -125,7 +126,7 @@ All technicians start from the **same location**. Each box is assigned to **exac
 
 `tryAssign`: bin-packing approach.
 
-`findMinimumTeamSize`: Use `tryAssign` as your yes/no oracle. Try N = 1, 2, 3, … until it returns non-null. The first N that works is your answer. Binary search between 1 and `boxes.length` if you want to be clever.
+`findMinimumTeamSize`: Use `tryAssign` as your yes/no oracle. Try N = 1, 2, 3, … until it returns non-null. The first N that works is your answer. As with the other challenges, aim for an implementation that completes the load tests within **≈3 seconds** by avoiding combinatorial explosion.
 
 ---
 
