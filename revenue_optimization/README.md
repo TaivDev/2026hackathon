@@ -129,7 +129,7 @@ Your implementation must respect the following rules:
 
 - Each ad may only appear once in your full schedule.
 - You are not required to schedule every ad.
-- An ad can only start between `timeReceived` and `timeReceived + timeout`.
+- An ad can only start between `timeReceived` and `timeReceived + timeout` (inclusive on both ends).
 - Each ad runs for exactly `duration` time units once scheduled.
 - Only one ad may run in an area at any given time.
 - Ads may run simultaneously in different areas.
