@@ -201,9 +201,19 @@ When `advertiserScheduledCount` is `0`, treat the placement as the first ad (k=1
 
 When calculating decay for an advertiser's ads, sort them using this deterministic order:
 
-1. `startTime` ascending
-2. Raw placement revenue ascending (`baseRevenue × area.multiplier`) — lower revenue first
-3. `adId` lexicographically ascending
+1. **`startTime` ascending** — earlier start comes first (full revenue); later start is decayed.
+2. **Raw placement revenue ascending** (`baseRevenue × area.multiplier`) — when start times tie, lower raw placement revenue comes first; higher raw placement revenue is decayed.
+3. **`adId` lexicographically ascending** — when start time and raw revenue both tie, break by smaller `adId`.
+
+**Examples (same advertiser, `decayRate = 0.5`):**
+
+| Tie-breaker | Scenario | 1st (full revenue) | 2nd (×0.5) |
+|-------------|----------|--------------------|------------|
+| **1. startTime** | Ad A at startTime 0, Ad B at startTime 20 | A (earlier) | B |
+| **2. raw revenue** | Both at startTime 0: A has baseRevenue×multiplier = 100, B has baseRevenue×multiplier = 200 | A (lower first) | B |
+| **3. adId** | Both at startTime 0, both raw placement revenue is 100: adId "ad_a" and "ad_b" | "ad_a" (lex smaller) | "ad_b" |
+
+So: if two ads from the same advertiser are scheduled at the **same time**, the one with **higher** `baseRevenue × multiplier` is ordered second and gets decayed.
 
 ### Schedule Comparison
 
