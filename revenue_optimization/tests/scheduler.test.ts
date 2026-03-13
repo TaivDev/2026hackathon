@@ -526,13 +526,12 @@ describe('Scheduler', () => {
 
             for (let a = 0; a < 10; a++) {
                 const areaId = `area${a}`;
-                areas.push(createTestArea(areaId, 'main', { timeWindow: 1000 }));
+                areas.push(createTestArea(areaId, `main${a}`, { timeWindow: 1000 }));
                 schedule[areaId] = [];
 
                 for (let i = 0; i < 10; i++) {
                     const adId = `ad${a * 10 + i}`;
-                    // start times 0..90; default timeout 30 would invalidate 40+
-                    ads.push(createTestAd(adId, 'adv1', { duration: 10, timeout: 100 }));
+                    ads.push(createTestAd(adId, 'adv1', { duration: 10, timeout: 120 }));
                     schedule[areaId].push(
                         createTestScheduledAd(adId, areaId, i * 10, i * 10 + 10)
                     );
@@ -553,9 +552,8 @@ describe('Scheduler', () => {
 
                 for (let i = 0; i < 10; i++) {
                     const adId = `ad${a * 10 + i}`;
-                    // start times 0..90; default timeout 30 would invalidate 40+
                     ads.push(
-                        createTestAd(adId, `adv${i % 3}`, { baseRevenue: 100, timeout: 100 })
+                        createTestAd(adId, `adv${i % 3}`, { baseRevenue: 100, timeout: 120 })
                     );
                     fullSchedule[areaId].push(
                         createTestScheduledAd(adId, areaId, i * 10, i * 10 + 10)
